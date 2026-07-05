@@ -1,0 +1,30 @@
+[package]
+name = "sdkwork-routes-canvas-app-api"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "sdkwork_routes_canvas_app_api"
+path = "src/lib.rs"
+
+[dependencies]
+sdkwork-database-config = { workspace = true }
+axum.workspace = true
+http.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+sdkwork-canvas-pages-service.workspace = true
+sdkwork-routes-canvas-http-auth.workspace = true
+sdkwork-web-core.workspace = true
+sdkwork-web-axum.workspace = true
+sdkwork-utils-rust.workspace = true
+sdkwork_iam_web_adapter.workspace = true
+sqlx.workspace = true
+tokio.workspace = true
+
+[dev-dependencies]
+async-trait.workspace = true
+sdkwork-canvas-pages-repository-sqlx.workspace = true
+sdkwork-routes-canvas-http-auth = { workspace = true }
+sdkwork_iam_web_adapter.workspace = true
+tower.workspace = true

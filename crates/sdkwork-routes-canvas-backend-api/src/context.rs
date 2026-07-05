@@ -1,0 +1,1 @@
+pub use sdkwork_routes_canvas_http_auth::authenticated_actor;

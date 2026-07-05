@@ -1,0 +1,24 @@
+# sdkwork-canvas-app-sdk
+
+SDKWork Canvas App API SDK family metadata skeleton.
+
+This directory declares the owner-authored SDK family contract for the app/client surface generated from `../../apis/app-api/canvas/canvas-app-api.openapi.json`.
+
+Status:
+
+- Authority: `sdkwork-canvas-app-api`
+- SDK family: `sdkwork-canvas-app-sdk`
+- API prefix: `/app/v3/api`
+- Standard profile: `sdkwork-v3`
+- Generated output: not created in this phase
+
+Dependencies:
+
+- `sdkwork-iam-app-sdk` for appbase IAM/session capabilities.
+- `sdkwork-drive-app-sdk` for Drive-backed content, folders, assets, uploader, and version facades.
+
+Rules:
+
+- Notes does not copy Drive OpenAPI operations into this SDK family.
+- Generated Drive transports are dependency-owned and must not be imported or forked by Notes generated output.
+- Frontend services should receive Notes and Drive SDK clients through injected ports rather than raw HTTP.

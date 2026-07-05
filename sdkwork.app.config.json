@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 3,
+  "kind": "sdkwork.app",
+  "app": {
+    "key": "sdkwork-canvas",
+    "name": "SDKWork Canvas",
+    "displayName": "SDKWork Canvas",
+    "description": "Collaborative visual canvas for boards, elements, and Drive-backed assets.",
+    "vendor": "SDKWork",
+    "officialWebsiteUrl": "https://sdkwork.com/apps/sdkwork-canvas-pc-react",
+    "supportUrl": "https://sdkwork.com/support",
+    "privacyPolicyUrl": "https://sdkwork.com/privacy",
+    "termsOfServiceUrl": "https://sdkwork.com/terms",
+    "iconUrl": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/assets/icon-1024.png",
+    "appType": "APP_REACT",
+    "versionSource": "package.json",
+    "identifiers": {
+      "packageName": null,
+      "bundleId": null,
+      "desktopAppId": "com.sdkwork.canvas.desktop",
+      "containerImage": "registry.sdkwork.com/apps/sdkwork-canvas"
+    }
+  },
+  "backend": {
+    "profileKey": "backend-root-admin",
+    "ownerMode": "tenant",
+    "grantMode": "current",
+    "platform": "WEB",
+    "appId": "sdkwork-canvas-pc-react",
+    "tenantId": "100001",
+    "organizationId": "0",
+    "accessTokenPermissionScope": [
+      "iam.users.read",
+      "iam.organizations.read",
+      "iam.roles.read",
+      "iam.permissions.read"
+    ]
+  },
+  "runtime": {
+    "family": "desktop",
+    "framework": "react-tauri",
+    "runtimes": [
+      "WEB",
+      "TAURI"
+    ],
+    "deliveryModes": [
+      "WEB_URL",
+      "DIRECT_DOWNLOAD"
+    ],
+    "defaultPlatform": "WEB",
+    "defaultArchitecture": "x64",
+    "supportedDeploymentProfiles": [
+      "cloud",
+      "standalone"
+    ],
+    "defaultDeploymentProfile": "cloud"
+  },
+  "media": {
+    "icons": {
+      "primary": {
+        "id": "sdkwork-canvas-pc-react-primary-icon",
+        "type": "ICON",
+        "purpose": "PRIMARY",
+        "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/assets/icon-1024.png",
+        "platform": "APP",
+        "locale": "en-US",
+        "width": 1024,
+        "height": 1024,
+        "format": "PNG",
+        "fileSizeBytes": 524288,
+        "alphaChannel": false,
+        "sortOrder": 0,
+        "enabled": true,
+        "metadata": {
+          "generatedPlaceholder": true
+        }
+      },
+      "platform": [],
+      "metadata": {
+        "generatedBy": "apps/scripts/initialize-sdkwork-app-standard-v3.mjs"
+      }
+    },
+    "screenshots": [
+      {
+        "id": "sdkwork-canvas-pc-react-desktop_windows-screenshot",
+        "type": "SCREENSHOT",
+        "purpose": "CATALOG_SCREENSHOT",
+        "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/media/desktop_windows-screenshot.png",
+        "platform": "DESKTOP_WINDOWS",
+        "locale": "en-US",
+        "deviceClass": "DESKTOP",
+        "displayType": "DESKTOP_16_10",
+        "width": 1920,
+        "height": 1080,
+        "format": "PNG",
+        "fileSizeBytes": 1048576,
+        "alphaChannel": false,
+        "caption": "SDKWork Canvas PC React product screenshot.",
+        "sortOrder": 0,
+        "enabled": true,
+        "metadata": {
+          "generatedPlaceholder": true,
+          "altText": "SDKWork Canvas PC React app screenshot."
+        }
+      }
+    ],
+    "previews": [
+      {
+        "id": "sdkwork-canvas-pc-react-catalog-preview",
+        "type": "PREVIEW_IMAGE",
+        "purpose": "CATALOG_PREVIEW",
+        "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/media/preview-cover.png",
+        "platform": "DESKTOP_WINDOWS",
+        "locale": "en-US",
+        "width": 1600,
+        "height": 900,
+        "format": "PNG",
+        "fileSizeBytes": 786432,
+        "alphaChannel": false,
+        "caption": "SDKWork Canvas PC React preview.",
+        "sortOrder": 0,
+        "enabled": true,
+        "metadata": {
+          "generatedPlaceholder": true,
+          "altText": "SDKWork Canvas PC React preview cover."
+        }
+      }
+    ],
+    "metadata": {
+      "assetVersion": "0.1.0",
+      "defaultLocale": "en-US"
+    }
+  },
+  "publish": {
+    "status": "ACTIVE",
+    "installSkill": {
+      "name": "sdkwork-skills-app"
+    },
+    "platforms": [
+      "WEB",
+      "DESKTOP",
+      "DESKTOP_WINDOWS",
+      "DESKTOP_MACOS",
+      "DESKTOP_LINUX"
+    ],
+    "installPlatforms": [
+      "WEB",
+      "DESKTOP_WINDOWS",
+      "DESKTOP_MACOS",
+      "DESKTOP_LINUX"
+    ],
+    "defaultPackageId": "web-universal-cloud-browser-zip",
+    "storeUrl": "https://sdkwork.com/apps/sdkwork-canvas-pc-react",
+    "stores": [],
+    "config": {
+      "workspaceRoot": ".",
+      "framework": "react-tauri",
+      "managedBy": "apps/scripts/initialize-sdkwork-app-standard-v3.mjs"
+    }
+  },
+  "environments": {
+    "development": {
+      "accessUrl": "https://api-dev.sdkwork.com/apps/sdkwork-canvas-pc-react",
+      "deployEnv": "development",
+      "deployUrl": "https://api-dev.sdkwork.com/apps/sdkwork-canvas-pc-react"
+    },
+    "test": {
+      "accessUrl": "https://api-test.sdkwork.com/apps/sdkwork-canvas-pc-react",
+      "deployEnv": "test",
+      "deployUrl": "https://api-test.sdkwork.com/apps/sdkwork-canvas-pc-react"
+    },
+    "production": {
+      "accessUrl": "https://api.sdkwork.com/apps/sdkwork-canvas-pc-react",
+      "deployEnv": "production",
+      "deployUrl": "https://api.sdkwork.com/apps/sdkwork-canvas-pc-react"
+    }
+  },
+  "artifacts": {
+    "installConfig": {
+      "defaultPackageId": "web-universal-cloud-browser-zip",
+      "installCommand": "sdkwork install sdkwork-canvas-pc-react",
+      "launchCommand": "sdkwork open sdkwork-canvas-pc-react",
+      "uninstallCommand": "sdkwork uninstall sdkwork-canvas-pc-react",
+      "packages": [
+        {
+          "id": "web-universal-cloud-browser-zip",
+          "name": "SDKWork Canvas PC React Web Bundle",
+          "sourceType": "WEB_URL",
+          "packageFormat": "ZIP",
+          "platform": "WEB",
+          "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/STABLE/0.1.0/web.zip",
+          "enabled": true,
+          "metadata": {},
+          "checksumAlgorithm": "SHA-256",
+          "checksum": "1b6124b91b6124b91b6124b91b6124b91b6124b91b6124b91b6124b91b6124b9",
+          "architecture": "universal",
+          "deploymentProfile": "cloud",
+          "runtimeTarget": "browser"
+        },
+        {
+          "id": "windows-x64-standalone-desktop-zip",
+          "name": "SDKWork Canvas PC React Windows Bundle",
+          "sourceType": "BINARY_URL",
+          "packageFormat": "ZIP",
+          "platform": "DESKTOP_WINDOWS",
+          "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/STABLE/0.1.0/windows/x64/app.zip",
+          "enabled": true,
+          "metadata": {},
+          "architecture": "x64",
+          "checksumAlgorithm": "SHA-256",
+          "checksum": "868106cb868106cb868106cb868106cb868106cb868106cb868106cb868106cb",
+          "deploymentProfile": "standalone",
+          "runtimeTarget": "desktop"
+        },
+        {
+          "id": "macos-universal-standalone-desktop-dmg",
+          "name": "SDKWork Canvas PC React macOS Bundle",
+          "sourceType": "BINARY_URL",
+          "packageFormat": "DMG",
+          "platform": "DESKTOP_MACOS",
+          "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/STABLE/0.1.0/macos/universal/app.dmg",
+          "enabled": true,
+          "metadata": {},
+          "architecture": "universal",
+          "checksumAlgorithm": "SHA-256",
+          "checksum": "105b71bb105b71bb105b71bb105b71bb105b71bb105b71bb105b71bb105b71bb",
+          "deploymentProfile": "standalone",
+          "runtimeTarget": "desktop"
+        },
+        {
+          "id": "linux-x64-standalone-desktop-appimage",
+          "name": "SDKWork Canvas PC React Linux Bundle",
+          "sourceType": "BINARY_URL",
+          "packageFormat": "APPIMAGE",
+          "platform": "DESKTOP_LINUX",
+          "url": "https://cdn.sdkwork.com/apps/sdkwork-canvas-pc-react/STABLE/0.1.0/linux/generic/x64/app.AppImage",
+          "enabled": true,
+          "metadata": {
+            "linux": {
+              "distro": "generic"
+            }
+          },
+          "architecture": "x64",
+          "checksumAlgorithm": "SHA-256",
+          "checksum": "1051273c1051273c1051273c1051273c1051273c1051273c1051273c1051273c",
+          "deploymentProfile": "standalone",
+          "runtimeTarget": "desktop"
+        }
+      ],
+      "metadata": {
+        "workspaceRoot": ".",
+        "framework": "react-tauri",
+        "packageManager": "pnpm@10.30.2",
+        "migratedFromLegacyConfig": true
+      }
+    }
+  },
+  "release": {
+    "currentVersion": "0.1.0",
+    "defaultChannel": "STABLE",
+    "latest": {
+      "STABLE": "0.1.0"
+    },
+    "canvas": [
+      {
+        "version": "0.1.0",
+        "releaseChannel": "STABLE",
+        "title": "SDKWork Canvas PC React 0.1.0",
+        "summary": "SDKWork Canvas PC React initialized standard release.",
+        "content": "Initial SDKWork App Standard v3 manifest for SDKWork Canvas PC React.",
+        "highlights": [
+          "SDKWork App Standard v3 configuration initialized",
+          "platform_app projection metadata standardized",
+          "Download package matrix normalized"
+        ],
+        "packageIds": [
+          "web-universal-cloud-browser-zip",
+          "windows-x64-standalone-desktop-zip",
+          "macos-universal-standalone-desktop-dmg",
+          "linux-x64-standalone-desktop-appimage"
+        ],
+        "publishedAt": "2026-05-07T00:00:00Z",
+        "current": true,
+        "forceUpdate": false,
+        "minSupportedVersion": "0.1.0",
+        "metadata": {}
+      }
+    ]
+  },
+  "security": {
+    "checksumRequired": false,
+    "signatureRequired": false,
+    "sbomRequired": false
+  },
+  "devApp": {
+    "build": {
+      "targets": []
+    },
+    "sourceRoot": "."
+  },
+  "metadata": {
+    "standardOwner": "sdkwork-platform",
+    "initializedAt": "2026-05-07T00:00:00Z"
+  }
+}

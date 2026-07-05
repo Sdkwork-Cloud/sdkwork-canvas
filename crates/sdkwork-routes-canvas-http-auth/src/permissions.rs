@@ -1,0 +1,29 @@
+use http::StatusCode;
+use sdkwork_web_core::WebRequestContext;
+
+use crate::actor_context::AuthProblem;
+
+pub fn require_permission(context: &WebRequestContext, permission: &str) -> Result<(), AuthProblem> {
+    let principal = context.principal.as_ref().ok_or_else(|| {
+        AuthProblem::new(
+            StatusCode::UNAUTHORIZED,
+            "canvas.auth.missing_principal",
+            "authenticated request context is required",
+        )
+    })?;
+
+    if principal
+        .scopes
+        .permission_scope
+        .iter()
+        .any(|scope| scope == permission || scope == "canvas.*" || scope == "*")
+    {
+        return Ok(());
+    }
+
+    Err(AuthProblem::new(
+        StatusCode::FORBIDDEN,
+        "canvas.permission_denied",
+        format!("permission `{permission}` is required"),
+    ))
+}

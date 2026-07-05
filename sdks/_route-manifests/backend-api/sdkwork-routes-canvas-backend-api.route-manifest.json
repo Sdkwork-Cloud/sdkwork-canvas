@@ -1,0 +1,315 @@
+{
+  "schemaVersion": 1,
+  "kind": "sdkwork.route.manifest",
+  "packageName": "sdkwork-routes-canvas-backend-api",
+  "surface": "backend-api",
+  "owner": "sdkwork-canvas",
+  "domain": "canvas",
+  "capability": "canvas",
+  "apiAuthority": "sdkwork-canvas-backend-api",
+  "sdkFamily": "sdkwork-canvas-backend-sdk",
+  "prefix": "/backend/v3/api",
+  "source": {
+    "crateRoot": "crates/sdkwork-routes-canvas-backend-api",
+    "crateImport": "sdkwork_routes_canvas_backend_api"
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/backend/v3/api/canvas/ai_jobs",
+      "operationId": "aiJobs.admin.list",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_jobs.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "list_ai_jobs"
+      },
+      "schemas": {
+        "request": null,
+        "response": "AiJobPage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "GET",
+      "path": "/backend/v3/api/canvas/ai_jobs/{aiJobId}",
+      "operationId": "aiJobs.admin.retrieve",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_jobs.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "get_ai_job"
+      },
+      "schemas": {
+        "request": null,
+        "response": "AiJob",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "POST",
+      "path": "/backend/v3/api/canvas/ai_jobs/{aiJobId}/cancel",
+      "operationId": "aiJobs.cancel",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_jobs.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "cancel_ai_job"
+      },
+      "schemas": {
+        "request": null,
+        "response": "AiJob",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "POST",
+      "path": "/backend/v3/api/canvas/ai_jobs/{aiJobId}/claim",
+      "operationId": "aiJobs.claim",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_jobs.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "claim_ai_job"
+      },
+      "schemas": {
+        "request": null,
+        "response": "AiJob",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "POST",
+      "path": "/backend/v3/api/canvas/ai_jobs/{aiJobId}/complete",
+      "operationId": "aiJobs.complete",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_jobs.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "complete_ai_job"
+      },
+      "schemas": {
+        "request": "CompleteAiJobRequest",
+        "response": "AiJob",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "POST",
+      "path": "/backend/v3/api/canvas/ai_suggestions/{aiSuggestionId}/accept",
+      "operationId": "aiSuggestions.accept",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_suggestions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "accept_ai_suggestion"
+      },
+      "schemas": {
+        "request": "AiSuggestionDecisionRequest",
+        "response": "AiSuggestion",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "POST",
+      "path": "/backend/v3/api/canvas/ai_suggestions/{aiSuggestionId}/reject",
+      "operationId": "aiSuggestions.reject",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_suggestions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "reject_ai_suggestion"
+      },
+      "schemas": {
+        "request": "AiSuggestionDecisionRequest",
+        "response": "AiSuggestion",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "POST",
+      "path": "/backend/v3/api/canvas/ai_suggestions/{aiSuggestionId}/apply",
+      "operationId": "aiSuggestions.apply",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_suggestions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "apply_ai_suggestion"
+      },
+      "schemas": {
+        "request": "AiSuggestionApplyRequest",
+        "response": "PageContent",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    },
+    {
+      "method": "GET",
+      "path": "/backend/v3/api/canvas/ai_suggestions/{aiSuggestionId}/feedback",
+      "operationId": "aiSuggestions.feedback.list",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.backend.ai_suggestions.feedback.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_backend_api::handlers",
+        "name": "list_ai_suggestion_feedback"
+      },
+      "schemas": {
+        "request": null,
+        "response": "AiFeedbackPage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-backend-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-backend-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "backend-api"
+    }
+  ]
+}

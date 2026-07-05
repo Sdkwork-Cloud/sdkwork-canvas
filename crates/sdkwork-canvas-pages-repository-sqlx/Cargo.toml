@@ -1,0 +1,19 @@
+[package]
+name = "sdkwork-canvas-pages-repository-sqlx"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "sdkwork_canvas_pages_repository_sqlx"
+path = "src/lib.rs"
+
+[dependencies]
+async-trait.workspace = true
+serde_json.workspace = true
+sdkwork-canvas-database-host.workspace = true
+sdkwork-canvas-pages-service.workspace = true
+sdkwork-database-config.workspace = true
+sdkwork-database-sqlx.workspace = true
+sdkwork-database-repository.workspace = true
+serde.workspace = true
+sqlx.workspace = true

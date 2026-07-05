@@ -1,0 +1,2616 @@
+{
+  "openapi": "3.1.2",
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "info": {
+    "title": "SDKWork Canvas App API",
+    "version": "0.1.0",
+    "description": "App/client authority skeleton for SDKWork Canvas page workspaces. Durable page bytes, folders, assets, and versions are Drive-backed; Notes owns page metadata, object model, search, sync, and AI governance metadata."
+  },
+  "servers": [
+    {
+      "url": "/app/v3/api",
+      "description": "SDKWork App API root"
+    }
+  ],
+  "tags": [
+    {
+      "name": "canvas",
+      "description": "AI-native Notes app API resource surface."
+    }
+  ],
+  "paths": {
+    "/app/v3/api/canvas/workspaces": {
+      "get": {
+        "summary": "List Notes workspaces visible to the current app principal.",
+        "operationId": "workspaces.list",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PageSizeQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "items",
+                            "pageInfo"
+                          ],
+                          "properties": {
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/Workspace"
+                              }
+                            },
+                            "pageInfo": {
+                              "$ref": "#/components/schemas/PageInfo"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "workspaces",
+        "x-sdkwork-permission": "canvas.workspaces.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.workspace.list",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      },
+      "post": {
+        "summary": "Create a Notes workspace and bind it to a Drive Notes space or compatible app-upload space.",
+        "operationId": "workspaces.create",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateWorkspaceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created workspace.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/Workspace"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "workspaces",
+        "x-sdkwork-permission": "canvas.workspaces.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.workspace.create",
+        "x-sdkwork-idempotent": true,
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/workspaces/{workspaceId}/bootstrap": {
+      "get": {
+        "summary": "Retrieve workspace bootstrap metadata for editor startup.",
+        "operationId": "workspaces.bootstrap.retrieve",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceIdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace bootstrap payload.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/WorkspaceBootstrap"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "workspaces",
+        "x-sdkwork-permission": "canvas.workspaces.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.workspace.bootstrap.retrieve",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/workspaces/{workspaceId}/boards": {
+      "get": {
+        "summary": "List pages in a workspace.",
+        "operationId": "pages.list",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/PageQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PageSizeQuery"
+          },
+          {
+            "$ref": "#/components/parameters/SearchQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page summary page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "items",
+                            "pageInfo"
+                          ],
+                          "properties": {
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/PageSummary"
+                              }
+                            },
+                            "pageInfo": {
+                              "$ref": "#/components/schemas/PageInfo"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.list",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      },
+      "post": {
+        "summary": "Create a Drive-backed Notes page.",
+        "operationId": "pages.create",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreatePageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.create",
+        "x-sdkwork-idempotent": true,
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/boards/{pageId}": {
+      "get": {
+        "summary": "Retrieve Notes page metadata and Drive binding references.",
+        "operationId": "pages.retrieve",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.retrieve",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      },
+      "patch": {
+        "summary": "Update mutable Notes page metadata.",
+        "operationId": "pages.update",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePageRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated page metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.update",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/boards/{pageId}/remote_apply": {
+      "post": {
+        "summary": "Apply a queued sync mutation to a Notes page.",
+        "operationId": "pages.remoteApply",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteRemoteApplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Remote apply result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.remote_apply",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/boards/{pageId}/content": {
+      "get": {
+        "summary": "Retrieve Drive-backed page content through the Notes facade.",
+        "operationId": "pages.content.retrieve",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Page content envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.content.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.content.retrieve",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      },
+      "put": {
+        "summary": "Update Drive-backed page content and refresh Notes current version pointers.",
+        "operationId": "pages.content.update",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePageContentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated page content envelope.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.content.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.content.update",
+        "x-sdkwork-idempotent": true,
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/boards/{pageId}/versions": {
+      "get": {
+        "summary": "List Drive node versions for a Notes page through the Notes business facade.",
+        "operationId": "pages.versions.list",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/PageQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PageSizeQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Drive version page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "items",
+                            "pageInfo"
+                          ],
+                          "properties": {
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/DriveVersionSummary"
+                              }
+                            },
+                            "pageInfo": {
+                              "$ref": "#/components/schemas/PageInfo"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.versions.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.versions.list",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/search": {
+      "get": {
+        "summary": "Search Notes page projections while preserving Drive version provenance.",
+        "operationId": "search.query",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          },
+          {
+            "$ref": "#/components/parameters/SearchQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PageQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PageSizeQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Search results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "items",
+                            "pageInfo"
+                          ],
+                          "properties": {
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/SearchResult"
+                              }
+                            },
+                            "pageInfo": {
+                              "$ref": "#/components/schemas/PageInfo"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "search",
+        "x-sdkwork-permission": "canvas.search.query",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.search.query",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/ai_jobs": {
+      "post": {
+        "summary": "Create an auditable AI job for selected pages, collections, or workspace context.",
+        "operationId": "aiJobs.create",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAiJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted AI job.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/AiJob"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "aiJobs",
+        "x-sdkwork-permission": "canvas.ai_jobs.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.ai_job.create",
+        "x-sdkwork-idempotent": true,
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyHeader"
+          }
+        ],
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/boards/{pageId}/ai_suggestions": {
+      "get": {
+        "summary": "List reviewable AI suggestions for a Notes page.",
+        "operationId": "pages.aiSuggestions.list",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/PageQuery"
+          },
+          {
+            "$ref": "#/components/parameters/PageSizeQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AI suggestion page.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "additionalProperties": false,
+                          "required": [
+                            "items",
+                            "pageInfo"
+                          ],
+                          "properties": {
+                            "items": {
+                              "type": "array",
+                              "items": {
+                                "$ref": "#/components/schemas/AiSuggestion"
+                              }
+                            },
+                            "pageInfo": {
+                              "$ref": "#/components/schemas/PageInfo"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages.aiSuggestions",
+        "x-sdkwork-permission": "canvas.boards.ai_suggestions.read",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.ai_suggestion.list",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/accept": {
+      "post": {
+        "summary": "Accept a reviewable AI suggestion for a Notes page.",
+        "operationId": "aiSuggestions.accept",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AiSuggestionIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSuggestionDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Accepted AI suggestion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/AiSuggestion"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "aiSuggestions",
+        "x-sdkwork-permission": "canvas.ai_suggestions.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.ai_suggestion.accept",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/reject": {
+      "post": {
+        "summary": "Reject a reviewable AI suggestion for a Notes page.",
+        "operationId": "aiSuggestions.reject",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AiSuggestionIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSuggestionDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rejected AI suggestion.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/AiSuggestion"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "aiSuggestions",
+        "x-sdkwork-permission": "canvas.ai_suggestions.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.ai_suggestion.reject",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/apply": {
+      "post": {
+        "summary": "Apply an accepted AI suggestion to Drive-backed page content.",
+        "operationId": "aiSuggestions.apply",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AiSuggestionIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiSuggestionApplyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Applied AI suggestion page content result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/PageContent"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "aiSuggestions",
+        "x-sdkwork-permission": "canvas.ai_suggestions.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.ai_suggestion.apply",
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/feedback": {
+      "post": {
+        "summary": "Record user feedback for an AI suggestion quality loop.",
+        "operationId": "aiSuggestions.feedback.create",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/AiSuggestionIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AiFeedbackCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Recorded AI feedback.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/SdkWorkApiResponse"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "item"
+                          ],
+                          "properties": {
+                            "item": {
+                              "$ref": "#/components/schemas/AiFeedback"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "aiSuggestions.feedback",
+        "x-sdkwork-permission": "canvas.ai_suggestions.feedback.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.ai_suggestion.feedback.create",
+        "x-sdkwork-idempotent": true,
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    },
+    "/app/v3/api/canvas/boards/{pageId}/versions/{driveVersionId}/restore": {
+      "post": {
+        "summary": "Restore a Drive-owned page content version through the Notes business facade.",
+        "operationId": "pages.versions.restore",
+        "tags": [
+          "canvas"
+        ],
+        "security": [
+          {
+            "AuthToken": [],
+            "AccessToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PageIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/DriveVersionIdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RestorePageVersionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Restored page content envelope with the new current Drive version.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SdkWorkListResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "$ref": "#/components/responses/ProblemDetailResponse"
+          }
+        },
+        "x-sdkwork-owner": "sdkwork-canvas",
+        "x-sdkwork-api-authority": "sdkwork-canvas-app-api",
+        "x-sdkwork-domain": "canvas",
+        "x-sdkwork-resource": "pages",
+        "x-sdkwork-permission": "canvas.boards.versions.write",
+        "x-sdkwork-tenant-scope": "tenant",
+        "x-sdkwork-data-scope": "organization",
+        "x-sdkwork-audit-event": "canvas.page.versions.restore",
+        "x-sdkwork-idempotent": false,
+        "x-sdkwork-request-context": "WebRequestContext",
+        "x-sdkwork-api-surface": "app-api"
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "AuthToken": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      },
+      "AccessToken": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "Access-Token"
+      }
+    },
+    "parameters": {
+      "WorkspaceIdPath": {
+        "name": "workspaceId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Public Notes workspace id."
+      },
+      "WorkspaceIdQuery": {
+        "name": "workspace_id",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Optional workspace filter."
+      },
+      "PageIdPath": {
+        "name": "pageId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Public Notes page id."
+      },
+      "PageQuery": {
+        "name": "page",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 1
+        }
+      },
+      "PageSizeQuery": {
+        "name": "page_size",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 200,
+          "default": 20
+        }
+      },
+      "SearchQuery": {
+        "name": "q",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "AiSuggestionIdPath": {
+        "name": "aiSuggestionId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Public Notes AI suggestion id."
+      },
+      "IdempotencyKeyHeader": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        }
+      },
+      "DriveVersionIdPath": {
+        "name": "driveVersionId",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        },
+        "description": "Drive-owned node version id exposed through the Notes page facade."
+      }
+    },
+    "responses": {
+      "ProblemDetailResponse": {
+        "description": "Problem detail error.",
+        "content": {
+          "application/problem+json": {
+            "schema": {
+              "$ref": "#/components/schemas/ProblemDetail"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "FieldError": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "field",
+          "message"
+        ],
+        "properties": {
+          "field": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 40011,
+            "maximum": 40099
+          }
+        }
+      },
+      "ProblemDetail": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": [
+          "type",
+          "title",
+          "status",
+          "code",
+          "traceId"
+        ],
+        "properties": {
+          "type": {
+            "type": "string",
+            "format": "uri-reference"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 100,
+            "maximum": 599
+          },
+          "detail": {
+            "type": "string"
+          },
+          "instance": {
+            "type": "string"
+          },
+          "code": {
+            "$ref": "#/components/schemas/SdkWorkPlatformErrorCode"
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Server-owned request correlation id."
+          },
+          "errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldError"
+            }
+          }
+        }
+      },
+      "PageInfo": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "mode"
+        ],
+        "properties": {
+          "mode": {
+            "type": "string",
+            "enum": [
+              "offset",
+              "cursor"
+            ]
+          },
+          "page": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "pageSize": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 200
+          },
+          "totalItems": {
+            "type": "string",
+            "pattern": "^[0-9]+$"
+          },
+          "totalPages": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "nextCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "hasMore": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Workspace": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "driveSpaceId",
+          "lifecycleStatus",
+          "createdAt",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "driveSpaceId": {
+            "type": "string"
+          },
+          "defaultPageContentType": {
+            "type": "string"
+          },
+          "defaultPageSchemaVersion": {
+            "type": "string"
+          },
+          "aiIndexPolicyCode": {
+            "type": "string"
+          },
+          "lifecycleStatus": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "WorkspacePage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Workspace"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "WorkspaceBootstrap": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workspace",
+          "rootPages"
+        ],
+        "properties": {
+          "workspace": {
+            "$ref": "#/components/schemas/Workspace"
+          },
+          "rootPages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageSummary"
+            }
+          },
+          "objectTypes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ObjectTypeSummary"
+            }
+          },
+          "changeToken": {
+            "type": "string"
+          }
+        }
+      },
+      "ObjectTypeSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "PageSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "workspaceId",
+          "title",
+          "driveNodeId",
+          "currentDriveVersionNo",
+          "updatedAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "snippet": {
+            "type": "string"
+          },
+          "pageKind": {
+            "type": "string",
+            "enum": [
+              "doc",
+              "article",
+              "code",
+              "log",
+              "database",
+              "canvas",
+              "folder"
+            ]
+          },
+          "driveNodeId": {
+            "type": "string"
+          },
+          "currentDriveVersionNo": {
+            "type": "string"
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Page": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PageSummary"
+          },
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "driveSpaceId",
+              "driveUri",
+              "contentType",
+              "contentSchemaVersion",
+              "lifecycleStatus",
+              "createdAt",
+              "currentDriveVersionId"
+            ],
+            "properties": {
+              "parentPageId": {
+                "type": "string"
+              },
+              "folderDriveNodeId": {
+                "type": "string"
+              },
+              "driveSpaceId": {
+                "type": "string"
+              },
+              "driveUri": {
+                "type": "string"
+              },
+              "currentDriveVersionId": {
+                "type": "string"
+              },
+              "contentType": {
+                "type": "string",
+                "maxLength": 255
+              },
+              "contentSchemaVersion": {
+                "type": "string",
+                "maxLength": 32
+              },
+              "contentHash": {
+                "type": "string"
+              },
+              "archiveStatus": {
+                "type": "string"
+              },
+              "publishStatus": {
+                "type": "string"
+              },
+              "lifecycleStatus": {
+                "type": "string"
+              },
+              "createdAt": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          }
+        ]
+      },
+      "PageSummaryPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PageSummary"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "PageContent": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "pageId",
+          "driveNodeId",
+          "driveVersionId",
+          "driveVersionNo",
+          "contentType",
+          "content",
+          "contentSchemaVersion"
+        ],
+        "properties": {
+          "pageId": {
+            "type": "string"
+          },
+          "driveNodeId": {
+            "type": "string"
+          },
+          "driveVersionId": {
+            "type": "string"
+          },
+          "driveVersionNo": {
+            "type": "string"
+          },
+          "contentType": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "contentSchemaVersion": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "content": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "DriveVersionSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "driveVersionId",
+          "driveVersionNo",
+          "versionKind",
+          "createdAt"
+        ],
+        "properties": {
+          "driveVersionId": {
+            "type": "string"
+          },
+          "driveVersionNo": {
+            "type": "string"
+          },
+          "versionKind": {
+            "type": "string"
+          },
+          "versionLabel": {
+            "type": "string"
+          },
+          "changeSummary": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DriveVersionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DriveVersionSummary"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "SearchResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "page",
+          "sourceDriveVersionNo"
+        ],
+        "properties": {
+          "page": {
+            "$ref": "#/components/schemas/PageSummary"
+          },
+          "highlights": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourceDriveVersionId": {
+            "type": "string"
+          },
+          "sourceDriveVersionNo": {
+            "type": "string"
+          }
+        }
+      },
+      "SearchResultPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SearchResult"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "AiJob": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "workspaceId",
+          "jobType",
+          "targetType",
+          "status",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "jobType": {
+            "type": "string"
+          },
+          "targetType": {
+            "type": "string"
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "succeeded",
+              "failed",
+              "canceled"
+            ]
+          },
+          "result": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateWorkspaceRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "name",
+          "driveSpaceId"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "ownerSubjectType": {
+            "type": "string",
+            "enum": [
+              "user",
+              "group",
+              "organization",
+              "app"
+            ],
+            "default": "user"
+          },
+          "ownerSubjectId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "driveSpaceId": {
+            "type": "string"
+          },
+          "defaultPageContentType": {
+            "type": "string",
+            "default": "application/vnd.sdkwork.canvas.page+json"
+          },
+          "defaultPageSchemaVersion": {
+            "type": "string",
+            "default": "1"
+          },
+          "aiIndexPolicyCode": {
+            "type": "string"
+          }
+        }
+      },
+      "CreatePageRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "id"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "pageKind": {
+            "type": "string",
+            "enum": [
+              "doc",
+              "article",
+              "code",
+              "log",
+              "database",
+              "canvas",
+              "folder"
+            ]
+          },
+          "parentPageId": {
+            "type": "string"
+          },
+          "folderDriveNodeId": {
+            "type": "string"
+          },
+          "initialContent": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "contentType": {
+            "type": "string",
+            "maxLength": 255,
+            "default": "application/vnd.sdkwork.canvas.page+json"
+          },
+          "contentSchemaVersion": {
+            "type": "string",
+            "maxLength": 32,
+            "default": "1"
+          },
+          "changeSummary": {
+            "type": "string"
+          }
+        }
+      },
+      "UpdatePageRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "favorite": {
+            "type": "boolean"
+          },
+          "archiveStatus": {
+            "type": "string"
+          },
+          "publishStatus": {
+            "type": "string"
+          },
+          "parentPageId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "expectedVersion": {
+            "type": "string"
+          }
+        }
+      },
+      "NoteRemoteApplyMutationPatch": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isFavorite": {
+            "type": "boolean"
+          },
+          "publishStatus": {
+            "type": "string"
+          }
+        }
+      },
+      "NoteRemoteApplyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "idempotencyKey",
+          "taskId",
+          "entityType",
+          "entityId",
+          "operation",
+          "mutation"
+        ],
+        "properties": {
+          "idempotencyKey": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "entityType": {
+            "type": "string"
+          },
+          "entityId": {
+            "type": "string"
+          },
+          "operation": {
+            "type": "string"
+          },
+          "localRevision": {
+            "type": "integer"
+          },
+          "baseRemoteCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mutation": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "NoteRemoteApplyConflict": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "message",
+          "occurredAt"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string"
+          }
+        }
+      },
+      "NoteRemoteApplyResult": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "outcome",
+          "taskId"
+        ],
+        "properties": {
+          "outcome": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "remoteCursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "appliedAt": {
+            "type": "string"
+          },
+          "conflict": {
+            "$ref": "#/components/schemas/NoteRemoteApplyConflict"
+          }
+        }
+      },
+      "UpdatePageContentRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "content"
+        ],
+        "properties": {
+          "content": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "contentType": {
+            "type": "string",
+            "maxLength": 255
+          },
+          "contentSchemaVersion": {
+            "type": "string",
+            "maxLength": 32
+          },
+          "changeSummary": {
+            "type": "string"
+          },
+          "expectedDriveVersionId": {
+            "type": "string"
+          },
+          "createCheckpoint": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateAiJobRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "workspaceId",
+          "jobType",
+          "targetType"
+        ],
+        "properties": {
+          "workspaceId": {
+            "type": "string"
+          },
+          "jobType": {
+            "type": "string",
+            "enum": [
+              "summarize",
+              "rewrite",
+              "extract_tasks",
+              "answer",
+              "organize",
+              "generate"
+            ]
+          },
+          "targetType": {
+            "type": "string",
+            "enum": [
+              "page",
+              "collection",
+              "workspace",
+              "selection"
+            ]
+          },
+          "targetId": {
+            "type": "string"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 8000
+          },
+          "contextPolicy": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "AiSuggestion": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "workspaceId",
+          "pageId",
+          "aiJobId",
+          "suggestionType",
+          "status",
+          "payload",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "pageId": {
+            "type": "string"
+          },
+          "aiJobId": {
+            "type": "string"
+          },
+          "suggestionType": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "proposed",
+              "accepted",
+              "applied",
+              "rejected",
+              "dismissed"
+            ]
+          },
+          "sourceDriveNodeId": {
+            "type": "string"
+          },
+          "sourceDriveVersionId": {
+            "type": "string"
+          },
+          "sourceDriveVersionNo": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AiSuggestionPage": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AiSuggestion"
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "AiSuggestionDecisionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "AiSuggestionApplyRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedDriveVersionId": {
+            "type": "string"
+          },
+          "createCheckpoint": {
+            "type": "boolean",
+            "default": true
+          }
+        }
+      },
+      "AiFeedback": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "workspaceId",
+          "jobId",
+          "feedbackType",
+          "createdBy",
+          "createdAt"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "jobId": {
+            "type": "string"
+          },
+          "suggestionId": {
+            "type": "string"
+          },
+          "feedbackType": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected",
+              "edited",
+              "helpful",
+              "not_helpful"
+            ]
+          },
+          "feedbackText": {
+            "type": "string",
+            "maxLength": 2000
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AiFeedbackCreateRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "feedbackType"
+        ],
+        "properties": {
+          "feedbackType": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "rejected",
+              "edited",
+              "helpful",
+              "not_helpful"
+            ]
+          },
+          "feedbackText": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        }
+      },
+      "RestorePageVersionRequest": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "expectedCurrentDriveVersionId": {
+            "type": "string"
+          }
+        }
+      },
+      "SdkWorkApiResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "code",
+          "data",
+          "traceId"
+        ],
+        "properties": {
+          "code": {
+            "type": "integer",
+            "format": "int32",
+            "enum": [
+              0
+            ],
+            "default": 0,
+            "minimum": 0,
+            "maximum": 0
+          },
+          "data": {
+            "description": "Operation-specific payload typed per response schema."
+          },
+          "traceId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Server-owned request correlation id."
+          }
+        }
+      },
+      "SdkWorkResourceData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "item"
+        ],
+        "properties": {
+          "item": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "Typed domain resource for the operation."
+          }
+        }
+      },
+      "SdkWorkPageData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "items",
+          "pageInfo"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "pageInfo": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "SdkWorkCommandData": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "accepted"
+        ],
+        "properties": {
+          "accepted": {
+            "type": "boolean",
+            "const": true
+          },
+          "resourceId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          }
+        }
+      },
+      "SdkWorkPlatformErrorCode": {
+        "type": "integer",
+        "format": "int32",
+        "minimum": 40001,
+        "maximum": 79999,
+        "description": "Platform or domain error code per API_SPEC.md §15.3."
+      },
+      "SdkWorkResourceResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SdkWorkApiResponse"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SdkWorkResourceData"
+              }
+            }
+          }
+        ]
+      },
+      "SdkWorkListResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SdkWorkApiResponse"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SdkWorkPageData"
+              }
+            }
+          }
+        ]
+      },
+      "SdkWorkCommandResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/SdkWorkApiResponse"
+          },
+          {
+            "type": "object",
+            "required": [
+              "data"
+            ],
+            "properties": {
+              "data": {
+                "$ref": "#/components/schemas/SdkWorkCommandData"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

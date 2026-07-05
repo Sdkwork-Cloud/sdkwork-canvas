@@ -1,0 +1,78 @@
+{
+  "workspace": "sdkwork-canvas-app-sdk",
+  "title": "SDKWork Canvas App API SDK",
+  "apiVersion": "0.1.0",
+  "openapiVersion": "3.1.2",
+  "authoritySpec": "../../apis/app-api/canvas/canvas-app-api.openapi.json",
+  "generationInputSpec": "../../apis/app-api/canvas/canvas-app-api.openapi.json",
+  "derivedSpecs": {
+    "default": "../../apis/app-api/canvas/canvas-app-api.openapi.json"
+  },
+  "apiAuthority": "sdkwork-canvas-app-api",
+  "discoverySurface": {
+    "sdkTarget": "app",
+    "apiPrefix": "/app/v3/api",
+    "schemaUrl": "/app/v3/openapi.json",
+    "generatedProtocols": ["http-openapi"],
+    "manualTransports": []
+  },
+  "languages": [
+    {
+      "language": "typescript",
+      "workspace": "sdkwork-canvas-app-sdk-typescript",
+      "generationState": "generated",
+      "releaseState": "not_published",
+      "generatedPath": "sdkwork-canvas-app-sdk-typescript/generated/server-openapi",
+      "manifestPath": "sdkwork-canvas-app-sdk-typescript/generated/server-openapi/package.json",
+      "name": "@sdkwork/canvas-app-sdk",
+      "version": "0.1.0",
+      "description": "Composed TypeScript consumer SDK for sdkwork-canvas app API.",
+      "consumerSurface": {
+        "primaryClient": "SdkworkCanvasAppClient",
+        "apiPrefix": "/app/v3/api"
+      }
+    }
+  ],
+  "sdkOwner": "sdkwork-canvas",
+  "sdkDependencies": [
+    {
+      "workspace": "sdkwork-iam-app-sdk",
+      "role": "appbase-identity-and-session-capability",
+      "required": true,
+      "dependencyMode": "consumer-sdk",
+      "apiPrefix": "/app/v3/api",
+      "apiAuthority": "sdkwork-iam-app-api",
+      "generatedTransportImportPolicy": "forbidden",
+      "packageByLanguage": {
+        "typescript": "@sdkwork/iam-app-sdk",
+        "rust": "sdkwork-iam-app-sdk",
+        "java": "com.sdkwork:sdkwork-iam-app-sdk",
+        "python": "sdkwork-iam-app-sdk",
+        "go": "github.com/sdkwork/sdkwork-iam-app-sdk"
+      }
+    },
+    {
+      "workspace": "sdkwork-drive-app-sdk",
+      "role": "drive-app-file-capability",
+      "required": true,
+      "dependencyMode": "consumer-sdk",
+      "apiPrefix": "/app/v3/api",
+      "apiAuthority": "sdkwork-drive.app",
+      "generatedTransportImportPolicy": "forbidden",
+      "packageByLanguage": {
+        "typescript": "@sdkwork/drive-app-sdk",
+        "rust": "sdkwork-drive-app-sdk",
+        "java": "com.sdkwork:sdkwork-drive-app-sdk",
+        "python": "sdkwork-drive-app-sdk",
+        "go": "github.com/sdkwork/sdkwork-drive-app-sdk"
+      }
+    }
+  ],
+  "dependencyApiExports": [],
+  "dependencyApiSurfaces": [],
+  "metadata": {
+    "standardVersion": "2026-07-06",
+    "materializationState": "authority-active",
+    "managedBy": "sdkwork-canvas-standard-alignment"
+  }
+}

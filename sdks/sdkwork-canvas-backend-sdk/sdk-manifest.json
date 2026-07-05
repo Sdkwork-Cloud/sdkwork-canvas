@@ -1,0 +1,167 @@
+{
+  "schemaVersion": 1,
+  "sdkName": "sdkwork-canvas-backend-sdk",
+  "sdkOwner": "sdkwork-canvas",
+  "apiAuthority": "sdkwork-canvas-backend-api",
+  "sdkFamily": "sdkwork-canvas-backend-sdk",
+  "sdkType": "backend",
+  "apiPrefix": "/backend/v3/api",
+  "generationInputSpec": "../../apis/backend-api/canvas/canvas-backend-api.openapi.json",
+  "generatedPackages": {
+    "typescript": {
+      "language": "typescript",
+      "packageName": "sdkwork-canvas-backend-sdk-generated-typescript",
+      "generatedOutput": "sdkwork-canvas-backend-sdk-typescript/generated/server-openapi"
+    },
+    "rust": {
+      "language": "rust",
+      "packageName": "sdkwork-canvas-backend-sdk-generated-rust",
+      "generatedOutput": "sdkwork-canvas-backend-sdk-rust/generated/server-openapi"
+    },
+    "java": {
+      "language": "java",
+      "packageName": "sdkwork-canvas-backend-sdk-generated-java",
+      "generatedOutput": "sdkwork-canvas-backend-sdk-java/generated/server-openapi"
+    },
+    "python": {
+      "language": "python",
+      "packageName": "sdkwork-canvas-backend-sdk-generated-python",
+      "generatedOutput": "sdkwork-canvas-backend-sdk-python/generated/server-openapi"
+    },
+    "go": {
+      "language": "go",
+      "packageName": "sdkwork-canvas-backend-sdk-generated-go",
+      "generatedOutput": "sdkwork-canvas-backend-sdk-go/generated/server-openapi"
+    }
+  },
+  "sdkDependencies": [
+    {
+      "workspace": "sdkwork-iam-backend-sdk",
+      "role": "appbase-backend-management-capability",
+      "required": true,
+      "dependencyMode": "consumer-sdk",
+      "apiPrefix": "/backend/v3/api",
+      "apiAuthority": "sdkwork-iam-backend-api",
+      "generatedTransportImportPolicy": "forbidden",
+      "packageByLanguage": {
+        "typescript": "@sdkwork/iam-backend-sdk",
+        "rust": "sdkwork-iam-backend-sdk",
+        "java": "com.sdkwork:sdkwork-iam-backend-sdk",
+        "python": "sdkwork-iam-backend-sdk",
+        "go": "github.com/sdkwork/sdkwork-iam-backend-sdk"
+      }
+    },
+    {
+      "workspace": "sdkwork-drive-backend-sdk",
+      "role": "drive-backend-file-governance-capability",
+      "required": true,
+      "dependencyMode": "consumer-sdk",
+      "apiPrefix": "/backend/v3/api",
+      "apiAuthority": "sdkwork-drive.backend",
+      "generatedTransportImportPolicy": "forbidden",
+      "packageByLanguage": {
+        "typescript": "@sdkwork/drive-backend-sdk",
+        "rust": "sdkwork-drive-backend-sdk",
+        "java": "com.sdkwork:sdkwork-drive-backend-sdk",
+        "python": "sdkwork-drive-backend-sdk",
+        "go": "github.com/sdkwork/sdkwork-drive-backend-sdk"
+      }
+    }
+  ],
+  "dependencyApiExports": [],
+  "dependencyApiSurfaces": [],
+  "generatorName": "sdkwork-sdk-generator",
+  "baseUrl": "http://127.0.0.1:8787",
+  "standardProfile": "sdkwork-v3",
+  "fixedSdkVersion": "0.1.0",
+  "ownerOnlyOperationCount": 12,
+  "managedBy": "sdkwork-canvas-contract-foundation",
+  "packageName": "@sdkwork/canvas-backend-sdk",
+  "transportPackageName": "sdkwork-canvas-backend-sdk-generated-typescript",
+  "typescript": {
+    "composedRoot": "sdkwork-canvas-backend-sdk-typescript",
+    "composedEntry": "sdkwork-canvas-backend-sdk-typescript/src/index.ts",
+    "transportRoot": "sdkwork-canvas-backend-sdk-typescript/generated/server-openapi",
+    "transportEntry": "sdkwork-canvas-backend-sdk-typescript/generated/server-openapi/src/index.ts"
+  },
+  "workspace": "sdkwork-canvas-backend-sdk",
+  "title": "SDKWork Canvas Backend API SDK",
+  "apiVersion": "0.1.0",
+  "openapiVersion": "3.1.2",
+  "authoritySpec": "../../apis/backend-api/canvas/canvas-backend-api.openapi.json",
+  "derivedSpecs": {
+    "default": "../../apis/backend-api/canvas/canvas-backend-api.openapi.json"
+  },
+  "discoverySurface": {
+    "sdkTarget": "backend",
+    "apiPrefix": "/backend/v3/api",
+    "schemaUrl": "/backend/v3/openapi.json",
+    "generatedProtocols": [
+      "http-openapi"
+    ],
+    "manualTransports": []
+  },
+  "languages": [
+    {
+      "language": "typescript",
+      "workspace": "sdkwork-canvas-backend-sdk-typescript",
+      "generationState": "generated",
+      "releaseState": "not_published",
+      "generatedPath": "sdkwork-canvas-backend-sdk-typescript/generated/server-openapi",
+      "manifestPath": "sdkwork-canvas-backend-sdk-typescript/generated/server-openapi/package.json",
+      "name": "@sdkwork-internal/canvas-backend-sdk-generated",
+      "version": "0.1.0",
+      "description": "Generator-owned TypeScript transport SDK for sdkwork-canvas backend API.",
+      "consumerSurface": {
+        "primaryClient": "SdkworkNotesBackendClient",
+        "apiPrefix": "/backend/v3/api"
+      },
+      "consumerPackageName": "@sdkwork/canvas-backend-sdk",
+      "transportPackageName": "sdkwork-canvas-backend-sdk-generated-typescript"
+    },
+    {
+      "language": "rust",
+      "workspace": "sdkwork-canvas-backend-sdk-rust",
+      "generationState": "generated",
+      "releaseState": "not_published",
+      "generatedPath": "sdkwork-canvas-backend-sdk-rust/generated/server-openapi",
+      "manifestPath": "sdkwork-canvas-backend-sdk-rust/generated/server-openapi/Cargo.toml",
+      "name": "sdkwork-canvas-backend-sdk-generated",
+      "version": "0.1.0",
+      "description": "Generator-owned Rust transport SDK for sdkwork-canvas backend API."
+    },
+    {
+      "language": "java",
+      "workspace": "sdkwork-canvas-backend-sdk-java",
+      "generationState": "declared",
+      "releaseState": "not_published",
+      "generatedPath": "sdkwork-canvas-backend-sdk-java/generated/server-openapi",
+      "manifestPath": "sdkwork-canvas-backend-sdk-java/generated/server-openapi/pom.xml",
+      "name": "com.sdkwork:canvas-backend-sdk-generated",
+      "version": "0.1.0",
+      "description": "Generator-owned Java transport SDK for sdkwork-canvas backend API."
+    },
+    {
+      "language": "python",
+      "workspace": "sdkwork-canvas-backend-sdk-python",
+      "generationState": "declared",
+      "releaseState": "not_published",
+      "generatedPath": "sdkwork-canvas-backend-sdk-python/generated/server-openapi",
+      "manifestPath": "sdkwork-canvas-backend-sdk-python/generated/server-openapi/pyproject.toml",
+      "name": "sdkwork-canvas-backend-sdk-generated",
+      "version": "0.1.0",
+      "description": "Generator-owned Python transport SDK for sdkwork-canvas backend API."
+    },
+    {
+      "language": "go",
+      "workspace": "sdkwork-canvas-backend-sdk-go",
+      "generationState": "declared",
+      "releaseState": "not_published",
+      "generatedPath": "sdkwork-canvas-backend-sdk-go/generated/server-openapi",
+      "manifestPath": "sdkwork-canvas-backend-sdk-go/generated/server-openapi/go.mod",
+      "name": "github.com/sdkwork/canvas-backend-sdk-generated",
+      "version": "0.1.0",
+      "description": "Generator-owned Go transport SDK for sdkwork-canvas backend API."
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import path from 'node:path';
+import test from 'node:test';
+
+const workspaceRoot = process.cwd();
+const workspaceConfigPath = path.resolve(workspaceRoot, 'pnpm-workspace.yaml');
+const canvasCorePackageJsonPath = path.resolve(
+  workspaceRoot,
+  'packages',
+  'sdkwork-canvas-pc-core',
+  'package.json',
+);
+const canvasAuthPackageJsonPath = path.resolve(
+  workspaceRoot,
+  'packages',
+  'sdkwork-canvas-pc-auth',
+  'package.json',
+);
+const canvasAuthBridgePath = path.resolve(
+  workspaceRoot,
+  'packages',
+  'sdkwork-canvas-pc-auth',
+  'src',
+  'services',
+  'sdkworkAuthBridge.ts',
+);
+const packagesRootPath = path.resolve(
+  workspaceRoot,
+  'packages',
+);
+const lockfilePath = path.resolve(workspaceRoot, 'pnpm-lock.yaml');
+const tsconfigBasePath = path.resolve(workspaceRoot, 'tsconfig.base.json');
+
+function collectSourceFiles(rootPath) {
+  const sourceFiles = [];
+  const pending = [rootPath];
+
+  while (pending.length > 0) {
+    const currentPath = pending.pop();
+    if (!currentPath) {
+      continue;
+    }
+
+    const entries = fs.readdirSync(currentPath, {
+      withFileTypes: true,
+    });
+
+    for (const entry of entries) {
+      const entryPath = path.join(currentPath, entry.name);
+      if (entry.isDirectory()) {
+        if (entry.name === 'dist' || entry.name === 'node_modules') {
+          continue;
+        }
+
+        pending.push(entryPath);
+        continue;
+      }
+
+      if (!entry.isFile()) {
+        continue;
+      }
+
+      if (entry.name.endsWith('.ts') || entry.name.endsWith('.tsx')) {
+        sourceFiles.push(entryPath);
+      }
+    }
+  }
+
+  return sourceFiles;
+}
+
+test('canvas workspace does not retain retired embedded core or IM sdk workspace paths', () => {
+  const workspaceConfig = fs.readFileSync(workspaceConfigPath, 'utf8');
+
+  assert.doesNotMatch(workspaceConfig, /apps\/sdkwork-core\/sdkwork-core-pc-react/);
+  assert.doesNotMatch(workspaceConfig, /openchat\/sdkwork-im-sdk\/sdkwork-im-sdk-typescript\/composed/);
+  assert.doesNotMatch(workspaceConfig, /openchat\/sdkwork-im-sdk\/sdkwork-im-sdk-typescript\/adapter-wukongim/);
+  assert.doesNotMatch(workspaceConfig, /openchat\/sdkwork-im-sdk\/sdkwork-im-sdk-typescript\/generated\/server-openapi/);
+});
+
+test('canvas vite configs do not import core-pc-react build helpers', () => {
+  const viteConfigPaths = [
+    path.resolve(workspaceRoot, 'vite.config.ts'),
+    path.resolve(workspaceRoot, 'packages', 'sdkwork-canvas-pc-desktop', 'vite.config.ts'),
+  ];
+
+  for (const viteConfigPath of viteConfigPaths) {
+    const source = fs.readFileSync(viteConfigPath, 'utf8');
+    assert.doesNotMatch(
+      source,
+      /@sdkwork\/core-pc-react/,
+      `Expected ${path.relative(workspaceRoot, viteConfigPath)} to use canvas-owned vite env helpers.`,
+    );
+  }
+});
+
+test('canvas-owned PC packages do not depend on core-pc-react', () => {
+  const packageDirs = fs
+    .readdirSync(packagesRootPath, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory() && entry.name.startsWith('sdkwork-canvas-pc-'))
+    .map((entry) => entry.name);
+
+  for (const directory of packageDirs) {
+    const packageJsonPath = path.join(packagesRootPath, directory, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    const dependencies = {
+      ...(packageJson.dependencies ?? {}),
+      ...(packageJson.devDependencies ?? {}),
+      ...(packageJson.peerDependencies ?? {}),
+    };
+
+    assert.equal(
+      dependencies['@sdkwork/core-pc-react'],
+      undefined,
+      `Expected ${directory} to avoid a direct core-pc-react dependency.`,
+    );
+  }
+});
+
+test('canvas-core app sdk runtime does not depend on core-pc-react', () => {
+  const packageJson = JSON.parse(fs.readFileSync(canvasCorePackageJsonPath, 'utf8'));
+  const dependencies = packageJson.dependencies ?? {};
+
+  assert.equal(dependencies['@sdkwork/core-pc-react'], undefined);
+});
+
+test('canvas-auth owns the shared auth runtime boundary and the rest of the workspace stays on the canvas-auth facade', () => {
+  const packageJson = JSON.parse(fs.readFileSync(canvasAuthPackageJsonPath, 'utf8'));
+  const dependencies = packageJson.dependencies ?? {};
+
+  assert.equal(dependencies['@sdkwork/core-pc-react'], undefined);
+  assert.equal(dependencies['@sdkwork/auth-pc-react'], 'workspace:*');
+
+  const bridgeSource = fs.readFileSync(canvasAuthBridgePath, 'utf8');
+
+  assert.match(bridgeSource, /from '@sdkwork\/canvas-pc-core'/);
+  assert.match(bridgeSource, /clearSession: options\.clearSession \?\? \(\(\) => clearAppSdkSessionTokens\(\)\)/);
+  assert.match(bridgeSource, /getClient: \(\) => resolveBoundAuthClient\(options\.getClient\)/);
+  assert.match(bridgeSource, /commitSession: options\.commitSession \?\? \(\(session\) => \{/);
+  assert.match(bridgeSource, /persistAppSdkSessionTokens\(\{/);
+  assert.match(bridgeSource, /readSession: options\.readSession \?\? \(\(\) => readAppSdkSessionTokens\(\)\)/);
+  assert.match(bridgeSource, /resolveAccessToken: options\.resolveAccessToken \?\? \(\(\) => resolveAppSdkAccessToken\(\)\)/);
+
+  const directSharedAuthImports = collectSourceFiles(packagesRootPath)
+    .map((filePath) => path.relative(workspaceRoot, filePath).replaceAll('\\', '/'))
+    .filter((relativePath) => !relativePath.startsWith('packages/sdkwork-canvas-pc-auth/'))
+    .filter((relativePath) =>
+      fs.readFileSync(path.resolve(workspaceRoot, relativePath), 'utf8').includes('@sdkwork/auth-pc-react'),
+    );
+
+  assert.deepEqual(
+    directSharedAuthImports,
+    [],
+    'Expected only @sdkwork/canvas-pc-auth to import @sdkwork/auth-pc-react directly.',
+  );
+});
+
+test('lockfile does not retain retired embedded core or openchat IM workspace links', () => {
+  const lockfile = fs.readFileSync(lockfilePath, 'utf8');
+
+  assert.doesNotMatch(lockfile, /^ {2}'@sdkwork\/core-pc-react@/m);
+  assert.doesNotMatch(lockfile, /resolution:\s+\{directory:\s+.*apps\/sdkwork-core\/sdkwork-core-pc-react.*\}/);
+  assert.doesNotMatch(lockfile, /version:\s+(?:file|link):.*apps\/sdkwork-core\/sdkwork-core-pc-react/);
+  assert.doesNotMatch(lockfile, /openchat\/sdkwork-im-sdk\/sdkwork-im-sdk-typescript\/composed/);
+  assert.doesNotMatch(lockfile, /openchat\/sdkwork-im-sdk\/sdkwork-im-sdk-typescript\/adapter-wukongim/);
+  assert.doesNotMatch(lockfile, /openchat\/sdkwork-im-sdk\/sdkwork-im-sdk-typescript\/generated\/server-openapi/);
+});
+
+test('typescript resolves shared sdk types through explicit workspace path aliases', () => {
+  const tsconfigBase = JSON.parse(fs.readFileSync(tsconfigBasePath, 'utf8'));
+  const paths = tsconfigBase.compilerOptions?.paths ?? {};
+
+  const retiredGenericAppSdkPackage = `@sdkwork/${'app'}-sdk`;
+
+  assert.equal(
+    paths[retiredGenericAppSdkPackage],
+    undefined,
+    'Expected the retired generic app SDK alias to stay absent from tsconfig.base.json.',
+  );
+  assert.deepEqual(
+    paths['@sdkwork/sdk-common'],
+    ['../../sdkwork-sdk-commons/sdkwork-sdk-common-typescript/src/index.ts'],
+    'Expected tsconfig.base.json to resolve @sdkwork/sdk-common through the workspace source alias.',
+  );
+});

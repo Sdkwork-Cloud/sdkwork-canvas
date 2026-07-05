@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "kind": "sdkwork.component.spec",
+  "component": {
+    "name": "sdkwork-canvas",
+    "displayName": "SDKWork Canvas Workspace",
+    "version": "0.1.0",
+    "type": "product-workspace",
+    "root": "sdkwork-canvas",
+    "domain": "canvas",
+    "capability": "canvas",
+    "surface": "workspace",
+    "languages": [
+      "rust",
+      "typescript"
+    ],
+    "generated": false,
+    "private": false,
+    "manifests": [
+      "Cargo.toml",
+      "package.json",
+      "sdkwork.workflow.json",
+      "specs/topology.spec.json"
+    ]
+  },
+  "canonicalSpecs": [
+    {
+      "file": "README.md",
+      "path": "../sdkwork-specs/README.md",
+      "purpose": "SDKWork root standards entrypoint."
+    },
+    {
+      "file": "SDKWORK_WORKSPACE_SPEC.md",
+      "path": "../sdkwork-specs/SDKWORK_WORKSPACE_SPEC.md",
+      "purpose": "Repository root directory dictionary and .sdkwork workspace rules."
+    },
+    {
+      "file": "WEB_FRAMEWORK_SPEC.md",
+      "path": "../sdkwork-specs/WEB_FRAMEWORK_SPEC.md",
+      "purpose": "Mandatory sdkwork-web-framework integration for HTTP *-api surfaces."
+    },
+    {
+      "file": "DATABASE_SPEC.md",
+      "path": "../sdkwork-specs/DATABASE_SPEC.md",
+      "purpose": "Portable table contracts and schema evolution."
+    },
+    {
+      "file": "DEPLOYMENT_SPEC.md",
+      "path": "../sdkwork-specs/DEPLOYMENT_SPEC.md",
+      "purpose": "Standalone/cloud deployment profile parity."
+    },
+    {
+      "file": "GITHUB_WORKFLOW_SPEC.md",
+      "path": "../sdkwork-specs/GITHUB_WORKFLOW_SPEC.md",
+      "purpose": "Packaging workflow and artifact publication."
+    },
+    {
+      "file": "TEST_SPEC.md",
+      "path": "../sdkwork-specs/TEST_SPEC.md",
+      "purpose": "Contract, architecture, and verification evidence."
+    }
+  ],
+  "contracts": {
+    "publicExports": [],
+    "runtimeEntrypoints": [
+      "crates/sdkwork-canvas-standalone-gateway",
+      "sdkwork-canvas-pc-react"
+    ],
+    "routeManifest": null,
+    "sdkClients": [
+      "sdks/sdkwork-canvas-app-sdk",
+      "sdks/sdkwork-canvas-backend-sdk",
+      "sdks/sdkwork-canvas-sdk"
+    ],
+    "sdkDependencies": [
+      {
+        "sdkFamily": "sdkwork-iam-app-sdk",
+        "surface": "app-api",
+        "owner": "sdkwork-appbase"
+      },
+      {
+        "sdkFamily": "sdkwork-drive-app-sdk",
+        "surface": "app-api",
+        "owner": "sdkwork-drive"
+      }
+    ],
+    "dependencyApiExports": [],
+    "dependencyApiSurfaces": [
+      {
+        "sdkFamily": "sdkwork-iam-app-sdk",
+        "surface": "app-api",
+        "runtimeMode": "embedded-or-split"
+      },
+      {
+        "sdkFamily": "sdkwork-drive-app-sdk",
+        "surface": "app-api",
+        "runtimeMode": "split-or-remote"
+      }
+    ],
+    "events": [],
+    "configKeys": [
+      "specs/topology.spec.json",
+      "configs/topology/*.env"
+    ]
+  },
+  "integration": {
+    "webFramework": "Rust HTTP runtimes integrate sdkwork-web-framework through sdkwork-web-axum and sdkwork-iam-web-adapter.",
+    "database": "Canvas API server resolves SDKWORK_CANVAS database config through sdkwork-database-config; repository crate declares sdkwork-database-repository entities aligned with database/contract/table-registry.json.",
+    "utils": "Rust HTTP route crates and pages-service use sdkwork-utils-rust; PC commons re-exports @sdkwork/utils text helpers.",
+    "discovery": "Not required until RPC services are introduced.",
+    "drive": "Canvas API server routes page content through SdkDriveAppFacadePageContentPort (sdkwork-drive-app-sdk-generated-rust). Production profiles disable memory Drive and require SDKWORK_DRIVE_FACADE_URL."
+  },
+  "verification": {
+    "commands": [
+      "pnpm verify",
+      "node --test scripts/verify-canvas-standard-architecture.test.mjs"
+    ]
+  },
+  "metadata": {
+    "managedBy": "sdkwork-canvas-standard-alignment",
+    "standardVersion": "2026-06-18"
+  }
+}

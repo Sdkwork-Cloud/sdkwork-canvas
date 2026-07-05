@@ -1,0 +1,645 @@
+{
+  "schemaVersion": 1,
+  "kind": "sdkwork.route.manifest",
+  "packageName": "sdkwork-routes-canvas-app-api",
+  "surface": "app-api",
+  "owner": "sdkwork-canvas",
+  "domain": "canvas",
+  "capability": "canvas",
+  "apiAuthority": "sdkwork-canvas-app-api",
+  "sdkFamily": "sdkwork-canvas-app-sdk",
+  "prefix": "/app/v3/api",
+  "source": {
+    "crateRoot": "crates/sdkwork-routes-canvas-app-api",
+    "crateImport": "sdkwork_routes_canvas_app_api"
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/workspaces",
+      "operationId": "workspaces.list",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.workspaces.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "list_workspaces"
+      },
+      "schemas": {
+        "request": null,
+        "response": "WorkspacePage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/workspaces",
+      "operationId": "workspaces.create",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.workspaces.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "create_workspace"
+      },
+      "schemas": {
+        "request": "CreateWorkspaceRequest",
+        "response": "Workspace",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/workspaces/{workspaceId}/bootstrap",
+      "operationId": "workspaces.bootstrap.retrieve",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.workspaces.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "get_workspace_bootstrap"
+      },
+      "schemas": {
+        "request": null,
+        "response": "WorkspaceBootstrap",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas",
+      "operationId": "pages.list",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "list_pages"
+      },
+      "schemas": {
+        "request": null,
+        "response": "PageSummaryPage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas",
+      "operationId": "pages.create",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "create_page"
+      },
+      "schemas": {
+        "request": "CreatePageRequest",
+        "response": "Page",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/boards/{pageId}",
+      "operationId": "pages.retrieve",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "get_page"
+      },
+      "schemas": {
+        "request": null,
+        "response": "Page",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "PATCH",
+      "path": "/app/v3/api/canvas/boards/{pageId}",
+      "operationId": "pages.update",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "update_page"
+      },
+      "schemas": {
+        "request": "UpdatePageRequest",
+        "response": "Page",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/boards/{pageId}/remote_apply",
+      "operationId": "pages.remoteApply",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "remote_apply_page"
+      },
+      "schemas": {
+        "request": "NoteRemoteApplyRequest",
+        "response": "NoteRemoteApplyResult",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/boards/{pageId}/content",
+      "operationId": "pages.content.retrieve",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.content.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "get_page_content"
+      },
+      "schemas": {
+        "request": null,
+        "response": "PageContent",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "PUT",
+      "path": "/app/v3/api/canvas/boards/{pageId}/content",
+      "operationId": "pages.content.update",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.content.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "update_page_content"
+      },
+      "schemas": {
+        "request": "UpdatePageContentRequest",
+        "response": "PageContent",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/boards/{pageId}/versions",
+      "operationId": "pages.versions.list",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.versions.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "list_page_versions"
+      },
+      "schemas": {
+        "request": null,
+        "response": "DriveVersionPage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/boards/{pageId}/versions/{driveVersionId}/restore",
+      "operationId": "pages.versions.restore",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.versions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "restore_page_version"
+      },
+      "schemas": {
+        "request": "RestorePageVersionRequest",
+        "response": "PageContent",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/boards/{pageId}/ai_suggestions",
+      "operationId": "pages.aiSuggestions.list",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.boards.ai_suggestions.read",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "list_page_ai_suggestions"
+      },
+      "schemas": {
+        "request": null,
+        "response": "AiSuggestionPage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "GET",
+      "path": "/app/v3/api/canvas/search",
+      "operationId": "search.query",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.search.query",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "query_search"
+      },
+      "schemas": {
+        "request": null,
+        "response": "SearchResultPage",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/ai_jobs",
+      "operationId": "aiJobs.create",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.ai_jobs.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "create_ai_job"
+      },
+      "schemas": {
+        "request": "CreateAiJobRequest",
+        "response": "AiJob",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/accept",
+      "operationId": "aiSuggestions.accept",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.ai_suggestions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "accept_ai_suggestion"
+      },
+      "schemas": {
+        "request": "AiSuggestionDecisionRequest",
+        "response": "AiSuggestion",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/reject",
+      "operationId": "aiSuggestions.reject",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.ai_suggestions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "reject_ai_suggestion"
+      },
+      "schemas": {
+        "request": "AiSuggestionDecisionRequest",
+        "response": "AiSuggestion",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/apply",
+      "operationId": "aiSuggestions.apply",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.ai_suggestions.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "apply_ai_suggestion"
+      },
+      "schemas": {
+        "request": "AiSuggestionApplyRequest",
+        "response": "PageContent",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    },
+    {
+      "method": "POST",
+      "path": "/app/v3/api/canvas/ai_suggestions/{aiSuggestionId}/feedback",
+      "operationId": "aiSuggestions.feedback.create",
+      "tags": [
+        "canvas"
+      ],
+      "auth": {
+        "mode": "dual-token",
+        "required": true,
+        "permission": "canvas.ai_suggestions.feedback.write",
+        "tenantScope": "tenant",
+        "dataScope": "organization"
+      },
+      "handler": {
+        "module": "sdkwork_routes_canvas_app_api::handlers",
+        "name": "create_ai_suggestion_feedback"
+      },
+      "schemas": {
+        "request": "AiFeedbackCreateRequest",
+        "response": "AiFeedback",
+        "problem": "ProblemDetail"
+      },
+      "ownership": {
+        "owner": "sdkwork-canvas",
+        "apiAuthority": "sdkwork-canvas-app-api"
+      },
+      "source": {
+        "file": "crates/sdkwork-routes-canvas-app-api/src/handlers.rs"
+      },
+      "requestContext": "WebRequestContext",
+      "apiSurface": "app-api"
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "schemaVersion": 1,
+  "kind": "sdkwork.component.spec",
+  "component": {
+    "name": "sdkwork-canvas-sdk",
+    "displayName": "SDKWork Canvas Open API SDK",
+    "version": "0.1.0",
+    "type": "sdk-family",
+    "root": "sdkwork-canvas/sdks/sdkwork-canvas-sdk",
+    "domain": "canvas",
+    "capability": "canvas",
+    "status": "declared",
+    "languages": [
+      "typescript",
+      "rust",
+      "java",
+      "python",
+      "go"
+    ],
+    "generated": true,
+    "private": false,
+    "manifests": [
+      ".sdkwork-assembly.json",
+      "sdk-manifest.json"
+    ]
+  },
+  "canonicalSpecs": [
+    {
+      "file": "API_SPEC.md",
+      "path": "../../../sdkwork-specs/API_SPEC.md",
+      "purpose": "HTTP/OpenAPI and generated SDK contract rules."
+    },
+    {
+      "file": "SDK_SPEC.md",
+      "path": "../../../sdkwork-specs/SDK_SPEC.md",
+      "purpose": "SDK generation, SDK dependency, and SDK integration rules."
+    },
+    {
+      "file": "SDK_WORKSPACE_GENERATION_SPEC.md",
+      "path": "../../../sdkwork-specs/SDK_WORKSPACE_GENERATION_SPEC.md",
+      "purpose": "SDK workspace, SDK family naming, API authority naming, and OpenAPI generation rules."
+    }
+  ],
+  "contracts": {
+    "apiAuthority": {
+      "name": "sdkwork-canvas-open-api",
+      "prefix": "/canvas/v3/api",
+      "authorityOpenApi": "../../apis/open-api/canvas/canvas-open-api.openapi.json",
+      "derivedOpenApi": [
+        "../../apis/open-api/canvas/canvas-open-api.openapi.json"
+      ],
+      "owner": "sdkwork-canvas",
+      "standard": "../../../../sdkwork-specs/SDK_WORKSPACE_GENERATION_SPEC.md"
+    },
+    "publicExports": [],
+    "runtimeEntrypoints": [
+      ".sdkwork-assembly.json",
+      "sdk-manifest.json"
+    ],
+    "sdkDependencies": [],
+    "dependencyApiExports": [],
+    "dependencyApiSurfaces": [],
+    "sdkClients": [
+      "SdkworkNotesOpenClient"
+    ],
+    "events": [],
+    "configKeys": [
+      ".sdkwork-assembly.json",
+      "sdk-manifest.json"
+    ],
+    "routeManifest": null
+  },
+  "integration": {
+    "authority": "Root SDKWork specs remain authoritative. Local specs may extend but must not contradict them.",
+    "dependencyPolicy": "The Notes Open API SDK uses API key context only and does not consume appbase login/session SDKs.",
+    "sdkPolicy": "Generated SDK clients are injected through service/runtime boundaries; consumers must not create raw HTTP clients or manual auth headers."
+  },
+  "verification": {
+    "commands": [
+      "node scripts/verify-canvas-contract-foundation.mjs"
+    ]
+  },
+  "metadata": {
+    "managedBy": "sdkwork-canvas-contract-foundation",
+    "standardVersion": "2026-06-08"
+  }
+}

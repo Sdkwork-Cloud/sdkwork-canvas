@@ -1,0 +1,21 @@
+[package]
+name = "sdkwork-routes-canvas-http-auth"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "sdkwork_routes_canvas_http_auth"
+path = "src/lib.rs"
+
+[dependencies]
+axum.workspace = true
+http.workspace = true
+serde.workspace = true
+sdkwork-canvas-pages-service.workspace = true
+sdkwork-web-core.workspace = true
+sdkwork-web-axum.workspace = true
+sdkwork-utils-rust.workspace = true
+serde_json.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

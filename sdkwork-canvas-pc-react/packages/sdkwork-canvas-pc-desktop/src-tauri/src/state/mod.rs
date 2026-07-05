@@ -1,0 +1,339 @@
+use serde::{Deserialize, Serialize};
+use std::{
+    fs,
+    io,
+    path::{Path, PathBuf},
+    sync::{
+        atomic::{AtomicBool, Ordering},
+        Mutex,
+    },
+};
+
+const APP_CONFIG_FILE_NAME: &str = "desktop-config.json";
+const APP_SESSION_FILE_NAME: &str = "desktop-session.json";
+
+pub const APP_LANGUAGE_PREFERENCE_SYSTEM: &str = "system";
+pub const APP_LANGUAGE_PREFERENCE_ENGLISH: &str = "en-US";
+pub const APP_LANGUAGE_PREFERENCE_SIMPLIFIED_CHINESE: &str = "zh-CN";
+
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct AppMetadata {
+    pub name: String,
+    pub version: String,
+    pub target: String,
+    pub platform: String,
+    pub arch: String,
+}
+
+impl AppMetadata {
+    pub fn new(
+        name: String,
+        version: String,
+        target: String,
+        platform: String,
+        arch: String,
+    ) -> Self {
+        Self {
+            name,
+            version,
+            target,
+            platform,
+            arch,
+        }
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppConfig {
+    pub language: String,
+}
+
+impl Default for AppConfig {
+    fn default() -> Self {
+        Self {
+            language: APP_LANGUAGE_PREFERENCE_SYSTEM.to_string(),
+        }
+    }
+}
+
+impl AppConfig {
+    pub fn public_projection(&self) -> PublicAppConfig {
+        PublicAppConfig {
+            language: self.language.clone(),
+        }
+    }
+
+    pub fn with_language(mut self, language: &str) -> Self {
+        self.language = normalize_app_language_preference(language).to_string();
+        self
+    }
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PublicAppConfig {
+    pub language: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppPaths {
+    pub app_data_dir: String,
+    pub app_config_file: String,
+    pub app_session_file: String,
+}
+
+#[derive(Clone, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppSessionState {
+    pub auth_token: Option<String>,
+    pub access_token: Option<String>,
+    pub refresh_token: Option<String>,
+}
+
+impl AppSessionState {
+    pub fn normalized(&self) -> Self {
+        Self {
+            auth_token: normalize_optional_secret(self.auth_token.as_deref()),
+            access_token: normalize_optional_secret(self.access_token.as_deref()),
+            refresh_token: normalize_optional_secret(self.refresh_token.as_deref()),
+        }
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.auth_token.is_none() && self.access_token.is_none() && self.refresh_token.is_none()
+    }
+}
+
+pub struct AppState {
+    metadata: AppMetadata,
+    app_data_dir: PathBuf,
+    config_file: PathBuf,
+    session_file: PathBuf,
+    config: Mutex<AppConfig>,
+    shutdown_requested: AtomicBool,
+}
+
+impl AppState {
+    pub fn from_metadata(app_data_dir: PathBuf, metadata: AppMetadata) -> io::Result<Self> {
+        fs::create_dir_all(&app_data_dir)?;
+        let config_file = app_data_dir.join(APP_CONFIG_FILE_NAME);
+        let session_file = app_data_dir.join(APP_SESSION_FILE_NAME);
+        let config = read_config(&config_file)?;
+
+        Ok(Self {
+            metadata,
+            app_data_dir,
+            config_file,
+            session_file,
+            config: Mutex::new(config),
+            shutdown_requested: AtomicBool::new(false),
+        })
+    }
+
+    pub fn metadata(&self) -> &AppMetadata {
+        &self.metadata
+    }
+
+    pub fn config_snapshot(&self) -> AppConfig {
+        self.config.lock().expect("app config lock").clone()
+    }
+
+    pub fn replace_config(&self, config: AppConfig) {
+        *self.config.lock().expect("app config lock") = config;
+    }
+
+    pub fn config_file(&self) -> &Path {
+        &self.config_file
+    }
+
+    pub fn session_file(&self) -> &Path {
+        &self.session_file
+    }
+
+    pub fn app_paths(&self) -> AppPaths {
+        AppPaths {
+            app_data_dir: self.app_data_dir.to_string_lossy().into_owned(),
+            app_config_file: self.config_file.to_string_lossy().into_owned(),
+            app_session_file: self.session_file.to_string_lossy().into_owned(),
+        }
+    }
+
+    pub fn is_shutdown_requested(&self) -> bool {
+        self.shutdown_requested.load(Ordering::Relaxed)
+    }
+
+    pub fn request_shutdown(&self) {
+        self.shutdown_requested.store(true, Ordering::Relaxed);
+    }
+}
+
+pub fn normalize_app_language_preference(language: &str) -> &'static str {
+    let normalized = language.trim().to_ascii_lowercase();
+    if normalized.starts_with("zh") {
+        APP_LANGUAGE_PREFERENCE_SIMPLIFIED_CHINESE
+    } else if normalized.starts_with("en") {
+        APP_LANGUAGE_PREFERENCE_ENGLISH
+    } else {
+        APP_LANGUAGE_PREFERENCE_SYSTEM
+    }
+}
+
+fn normalize_optional_secret(value: Option<&str>) -> Option<String> {
+    let normalized = value.unwrap_or_default().trim();
+    if normalized.is_empty() {
+        None
+    } else {
+        Some(normalized.to_string())
+    }
+}
+
+pub fn read_config(path: &Path) -> io::Result<AppConfig> {
+    if !path.exists() {
+        return Ok(AppConfig::default());
+    }
+
+    let raw = fs::read_to_string(path)?;
+    let config = serde_json::from_str::<AppConfig>(&raw).unwrap_or_default();
+    let language = config.language.clone();
+    Ok(config.with_language(&language))
+}
+
+pub fn write_config(path: &Path, config: &AppConfig) -> io::Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    let normalized = config.clone().with_language(&config.language);
+    let content = serde_json::to_string_pretty(&normalized)
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+    fs::write(path, format!("{content}\n"))
+}
+
+pub fn read_session_state(path: &Path) -> io::Result<AppSessionState> {
+    if !path.exists() {
+        return Ok(AppSessionState::default());
+    }
+
+    let raw = fs::read_to_string(path)?;
+    let session = serde_json::from_str::<AppSessionState>(&raw).unwrap_or_default();
+    Ok(session.normalized())
+}
+
+pub fn write_session_state(path: &Path, session: &AppSessionState) -> io::Result<()> {
+    if let Some(parent) = path.parent() {
+        fs::create_dir_all(parent)?;
+    }
+
+    let normalized = session.normalized();
+    if normalized.is_empty() {
+        clear_session_state(path)?;
+        return Ok(());
+    }
+
+    let content = serde_json::to_string_pretty(&normalized)
+        .map_err(|error| io::Error::new(io::ErrorKind::InvalidData, error))?;
+    fs::write(path, format!("{content}\n"))
+}
+
+pub fn clear_session_state(path: &Path) -> io::Result<()> {
+    if path.exists() {
+        fs::remove_file(path)?;
+    }
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        clear_session_state, normalize_app_language_preference, read_config, read_session_state,
+        write_config, write_session_state, AppConfig, AppSessionState,
+        APP_LANGUAGE_PREFERENCE_ENGLISH, APP_LANGUAGE_PREFERENCE_SIMPLIFIED_CHINESE, APP_LANGUAGE_PREFERENCE_SYSTEM,
+    };
+    use std::{
+        fs,
+        time::{SystemTime, UNIX_EPOCH},
+    };
+
+    fn create_temp_dir(prefix: &str) -> std::path::PathBuf {
+        let path = std::env::temp_dir().join(format!(
+            "{prefix}-{}",
+            SystemTime::now()
+                .duration_since(UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        fs::create_dir_all(&path).expect("create temp dir");
+        path
+    }
+
+    #[test]
+    fn language_preference_normalization_accepts_canvas_locale_preferences() {
+        assert_eq!(
+            normalize_app_language_preference("zh-CN"),
+            APP_LANGUAGE_PREFERENCE_SIMPLIFIED_CHINESE
+        );
+        assert_eq!(
+            normalize_app_language_preference("en"),
+            APP_LANGUAGE_PREFERENCE_ENGLISH
+        );
+        assert_eq!(
+            normalize_app_language_preference("system"),
+            APP_LANGUAGE_PREFERENCE_SYSTEM
+        );
+    }
+
+    #[test]
+    fn config_roundtrip_persists_normalized_language() {
+        let root = create_temp_dir("sdkwork-canvas-config");
+        let config_file = root.join("desktop-config.json");
+
+        write_config(
+            &config_file,
+            &AppConfig {
+                language: "en".to_string(),
+            },
+        )
+        .expect("write config");
+
+        let config = read_config(&config_file).expect("read config");
+        assert_eq!(config.language, APP_LANGUAGE_PREFERENCE_ENGLISH);
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn session_state_roundtrip_normalizes_tokens_and_supports_clear() {
+        let root = create_temp_dir("sdkwork-canvas-session");
+        let session_file = root.join("desktop-session.json");
+
+        write_session_state(
+            &session_file,
+            &AppSessionState {
+                auth_token: Some(" auth-token ".to_string()),
+                access_token: Some(" access-token ".to_string()),
+                refresh_token: Some(" refresh-token ".to_string()),
+            },
+        )
+        .expect("write session");
+
+        let session = read_session_state(&session_file).expect("read session");
+        assert_eq!(
+            session,
+            AppSessionState {
+                auth_token: Some("auth-token".to_string()),
+                access_token: Some("access-token".to_string()),
+                refresh_token: Some("refresh-token".to_string()),
+            }
+        );
+
+        clear_session_state(&session_file).expect("clear session");
+        assert_eq!(
+            read_session_state(&session_file).expect("read cleared session"),
+            AppSessionState::default()
+        );
+
+        let _ = fs::remove_dir_all(root);
+    }
+}

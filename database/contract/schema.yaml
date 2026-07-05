@@ -1,0 +1,31 @@
+schema_version: 1
+kind: sdkwork.database.schema
+module_id: canvas
+contract_version: 1.0.0
+owner_team: canvas-platform
+compliance_level: L2
+engines:
+  - postgres
+table_prefix: canvas_
+tables:
+  - name: canvas_workspace
+    lifecycle_status: active
+    owner: canvas-platform
+  - name: canvas_page
+    lifecycle_status: active
+    owner: canvas-platform
+  - name: canvas_page_search_projection
+    lifecycle_status: active
+    owner: canvas-platform
+  - name: canvas_ai_job
+    lifecycle_status: active
+    owner: canvas-platform
+  - name: canvas_ai_job_source
+    lifecycle_status: active
+    owner: canvas-platform
+  - name: canvas_ai_suggestion
+    lifecycle_status: active
+    owner: canvas-platform
+  - name: canvas_ai_feedback
+    lifecycle_status: active
+    owner: canvas-platform

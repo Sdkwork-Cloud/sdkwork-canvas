@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": false,
+    "module": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "jsx": "react-jsx",
+    "types": ["vite/client"],
+    "resolveJsonModule": true,
+    "allowImportingTsExtensions": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "strict": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@sdkwork/canvas-pc-local": ["packages/sdkwork-canvas-pc-local/src/index.ts"],
+      "@sdkwork/canvas-pc-observability": ["packages/sdkwork-canvas-pc-observability/src/index.ts"],
+      "@sdkwork/canvas-pc-search": ["packages/sdkwork-canvas-pc-search/src/index.ts"],
+      "@sdkwork/canvas-pc-sync": ["packages/sdkwork-canvas-pc-sync/src/index.ts"],
+      "@sdkwork/sdk-common": ["../../sdkwork-sdk-commons/sdkwork-sdk-common-typescript/src/index.ts"],
+      "@sdkwork/appbase-pc-react": ["../../sdkwork-appbase/packages/pc-react/foundation/sdkwork-appbase-pc-react/src/index.ts"],
+      "@sdkwork/iam-app-sdk": ["../../sdkwork-iam/sdks/sdkwork-iam-app-sdk/sdkwork-iam-app-sdk-typescript/src/index.ts"],
+      "@sdkwork/iam-backend-sdk": ["../../sdkwork-iam/sdks/sdkwork-iam-backend-sdk/sdkwork-iam-backend-sdk-typescript/src/index.ts"],
+      "@sdkwork/auth-runtime-pc-react": ["../../sdkwork-iam/apps/sdkwork-iam-pc/packages/sdkwork-auth-runtime-pc-react/src/index.ts"],
+      "@sdkwork-internal/canvas-app-sdk-generated": ["../sdks/sdkwork-canvas-app-sdk/sdkwork-canvas-app-sdk-typescript/src/index.ts"]
+    },
+    "noEmit": true
+  }
+}

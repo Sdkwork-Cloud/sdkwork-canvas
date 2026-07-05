@@ -1,0 +1,17 @@
+[package]
+name = "sdkwork-canvas-database-host"
+edition = "2021"
+license = "SEE LICENSE IN LICENSE"
+version = "0.1.0"
+description = "SDKWork Canvas Database lifecycle bootstrap."
+
+[lib]
+name = "sdkwork_canvas_database_host"
+path = "src/lib.rs"
+
+[dependencies]
+dotenvy = "0.15"
+sdkwork-database-config = { workspace = true }
+sdkwork-database-lifecycle = { workspace = true }
+sdkwork-database-spi = { workspace = true }
+sdkwork-database-sqlx = { workspace = true }

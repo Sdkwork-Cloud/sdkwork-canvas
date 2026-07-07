@@ -1,14 +1,14 @@
 use crate::handlers;
 use crate::paths;
-use crate::state::NotesBackendState;
+use crate::state::CanvasBackendState;
 use axum::routing::{get, post};
 use axum::Router;
-use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, NotesRepository};
-use sdkwork_canvas_pages_service::service::NotesService;
+use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, CanvasRepository};
+use sdkwork_canvas_pages_service::service::CanvasPagesService;
 
-pub fn build_router<R, D>(service: NotesService<R, D>) -> Router
+pub fn build_router<R, D>(service: CanvasPagesService<R, D>) -> Router
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let router = Router::new()
@@ -37,6 +37,6 @@ where
             paths::AI_SUGGESTION_FEEDBACK,
             get(handlers::list_ai_suggestion_feedback::<R, D>),
         )
-        .with_state(NotesBackendState::new(service));
+        .with_state(CanvasBackendState::new(service));
     router
 }

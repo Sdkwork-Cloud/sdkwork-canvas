@@ -21,9 +21,9 @@ pub fn gateway_route_manifest() -> &'static str {
     route_manifest_json()
 }
 
-pub fn gateway_mount<R, D>(service: sdkwork_canvas_pages_service::service::NotesService<R, D>) -> axum::Router
+pub fn gateway_mount<R, D>(service: sdkwork_canvas_pages_service::service::CanvasPagesService<R, D>) -> axum::Router
 where
-    R: sdkwork_canvas_pages_service::ports::NotesRepository,
+    R: sdkwork_canvas_pages_service::ports::CanvasRepository,
     D: sdkwork_canvas_pages_service::ports::DrivePageContentPort,
 {
     routes::build_router(service)

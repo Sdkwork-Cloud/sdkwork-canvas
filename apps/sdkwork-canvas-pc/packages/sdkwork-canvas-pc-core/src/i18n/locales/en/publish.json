@@ -1,0 +1,19 @@
+{
+  "title": "Publish to WeChat",
+  "success": "Publish Successful",
+  "successDesc": "The article has been successfully synced to WeChat draft box.",
+  "cover": "Cover Image",
+  "changeCover": "Change Cover",
+  "clickToSetCover": "Click to set cover thumbnail",
+  "coverSizeSuggest": "Recommended size 900x383 pixels",
+  "articleTitle": "Title",
+  "changeTitleInEditor": "Modify title in the editor",
+  "digest": "Digest",
+  "digestPlaceholder": "Optional, if left blank, first 54 characters of content will be used.",
+  "syncTo": "Sync to",
+  "myAccount": "My WeChat Account",
+  "cancel": "Cancel",
+  "publishing": "Publishing...",
+  "confirmPublish": "Confirm Publish",
+  "enterCoverUrl": "Enter cover image URL"
+}

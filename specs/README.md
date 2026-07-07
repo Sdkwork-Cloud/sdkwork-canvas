@@ -1,10 +1,17 @@
-# specs/
+# Local Specs
 
-Root component and topology contracts for the SDKWork Canvas workspace.
+Module-local spec system for the `sdkwork-canvas` repository.
 
-| File | Purpose |
-| --- | --- |
-| [topology.spec.json](topology.spec.json) | Application runtime topology, surfaces, database prefix, IAM dev defaults |
-| [component.spec.json](component.spec.json) | Workspace-level component contract and verification commands |
+Authority: `../sdkwork-specs/COMPONENT_SPEC.md` section 1.
 
-Application-specific manifests live under each surface root (for example `sdkwork-canvas-pc-react/specs/`).
+## Files
+
+- `component.spec.json`: machine-readable integration contract for this repository. Identity, surface, `canonicalSpecs` links, SDK/route/runtime contracts, and verification commands.
+- `README.md` (this file): human index for the module spec system.
+
+## Rules
+
+- Module `specs/` `MAY` add narrowing extension files such as `FRONTEND_SPEC.md` or `RELEASE_SPEC.md` only when the module needs rules beyond global standards.
+- Module `specs/` `MUST NOT` copy, fork, or paraphrase global `*_SPEC.md` bodies. Link through `canonicalSpecs` instead.
+- Durable module rules belong here, not in `AGENTS.md` preserved-guidance blocks or repository README prose.
+- When `README` and a spec disagree, the global spec or machine contract wins unless a governance exception exists.

@@ -68,7 +68,7 @@ pub struct UpdatePageRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NoteRemoteApplyMutationPatchRequest {
+pub struct CanvasRemoteApplyMutationPatchRequest {
     pub title: Option<String>,
     pub content: Option<String>,
     pub parent_id: Option<Option<String>>,
@@ -78,9 +78,9 @@ pub struct NoteRemoteApplyMutationPatchRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
-pub enum NoteRemoteApplyMutationRequest {
+pub enum CanvasRemoteApplyMutationRequest {
     Patch {
-        patch: NoteRemoteApplyMutationPatchRequest,
+        patch: CanvasRemoteApplyMutationPatchRequest,
     },
     Intent {
         intent: String,
@@ -92,7 +92,7 @@ pub enum NoteRemoteApplyMutationRequest {
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NoteRemoteApplyRequest {
+pub struct CanvasRemoteApplyRequest {
     pub idempotency_key: String,
     pub task_id: String,
     pub entity_type: String,
@@ -100,12 +100,12 @@ pub struct NoteRemoteApplyRequest {
     pub operation: String,
     pub local_revision: Option<i64>,
     pub base_remote_cursor: Option<String>,
-    pub mutation: NoteRemoteApplyMutationRequest,
+    pub mutation: CanvasRemoteApplyMutationRequest,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NoteRemoteApplyConflictResponse {
+pub struct CanvasRemoteApplyConflictResponse {
     pub code: String,
     pub message: String,
     pub occurred_at: String,
@@ -113,7 +113,7 @@ pub struct NoteRemoteApplyConflictResponse {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NoteRemoteApplyResultResponse {
+pub struct CanvasRemoteApplyResultResponse {
     pub outcome: String,
     pub task_id: String,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -121,7 +121,7 @@ pub struct NoteRemoteApplyResultResponse {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub applied_at: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub conflict: Option<NoteRemoteApplyConflictResponse>,
+    pub conflict: Option<CanvasRemoteApplyConflictResponse>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -151,7 +151,7 @@ pub struct AiFeedbackCreateRequest {
 
 #[derive(Debug, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct NotesPageQuery {
+pub struct CanvasPageQuery {
     pub page: Option<i64>,
     #[serde(rename = "page_size")]
     pub page_size: Option<i64>,
@@ -160,7 +160,7 @@ pub struct NotesPageQuery {
 
 #[derive(Debug, Deserialize, Default)]
 #[serde(rename_all = "camelCase")]
-pub struct NotesSearchQuery {
+pub struct CanvasSearchQuery {
     #[serde(rename = "workspace_id")]
     pub workspace_id: Option<String>,
     pub page: Option<i64>,

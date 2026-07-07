@@ -1,48 +1,15 @@
-# apps/
+# Apps
 
-Application: canvas
-Status: active
-Owner: SDKWork maintainers
-Specs: APPLICATION_SPEC.md, SDKWORK_WORKSPACE_SPEC.md
+Runnable application surfaces for the `sdkwork-canvas` repository.
 
-## Primary App Surface
+Authority: `../sdkwork-specs/APPLICATION_SPEC.md`, `../sdkwork-specs/APP_PC_ARCHITECTURE_SPEC.md`.
 
-The repository root is not the primary runnable app surface.
-Notes uses a hybrid layout until migration to `apps/sdkwork-canvas-pc/`:
+## Active App Roots
 
-- `sdkwork-canvas-pc-react/` with `sdkwork-canvas-pc-react/sdkwork.app.config.json`
+- `sdkwork-canvas-pc/`: PC browser/desktop application root (React + Vite + Tauri-capable).
 
-Repository-root `pnpm-workspace.yaml` owns sibling package paths; do not add nested workspace files under client app roots.
+## Rules
 
-## Directory Index
-
-| Directory | Surface role | Runnable | Purpose | Entry |
-| --- | --- | --- | --- | --- |
-| sdkwork-canvas-pc-react | pc-react | yes | Primary PC React + Tauri application | [README](../sdkwork-canvas-pc-react/README.md) |
-
-Local-only prototypes under `apps/sdkwork-canvas-pc/` are gitignored and must not be treated as production surfaces.
-
-## Allowed Content
-
-- Selected language/architecture application roots with `README.md`, `AGENTS.md`, `.sdkwork/`, and `specs/` when authored packages exist.
-- Architecture-local `packages/`, `config/`, `src/`, `lib/`, `App/`, or `entry/` directories required by the owning architecture standard.
-
-## Forbidden Content
-
-- Repository-root API contracts, generated SDK workspaces, Rust crates, or deployment descriptors moved under `apps/`.
-- Runtime secrets, user-private state, generated SDK transport output, or cross-application copied business logic.
-- Nested `pnpm-workspace.yaml` files under client app roots.
-
-## Related Specs
-
-- `../sdkwork-specs/APPLICATION_SPEC.md`
-- `../sdkwork-specs/SDKWORK_WORKSPACE_SPEC.md`
-- `../sdkwork-specs/APP_CLIENT_ARCHITECTURE_ALIGNMENT_SPEC.md`
-- `../sdkwork-specs/APP_COMPOSITION_SPEC.md`
-
-## Verification
-
-```bash
-pnpm run check:app-composition
-node ../sdkwork-specs/tools/check-apps-directory-index.mjs --root .
-```
+- `apps/` is a collection of selected language/architecture application roots.
+- Every independent application repository must provide `apps/README.md` as the directory index per `DOCUMENTATION_SPEC.md` section 3.3.
+- Architecture-specific `src/`, `packages/`, and `config/` directories belong inside a child app root, not at the repository root.

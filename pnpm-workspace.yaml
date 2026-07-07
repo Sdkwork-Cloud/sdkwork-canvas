@@ -1,21 +1,8 @@
 packages:
-  - "apps/sdkwork-canvas-pc"
-  - "apps/sdkwork-canvas-pc/packages/*"
-  - "sdkwork-canvas-pc-react/packages/*"
-  - "sdks/sdkwork-canvas-app-sdk/sdkwork-canvas-app-sdk-typescript"
-  - "../sdkwork-core/sdkwork-core-pc-react"
-  - "../sdkwork-ui/sdkwork-ui-pc-react"
-  - "../sdkwork-appbase/packages/common/foundation/*"
-  - "../sdkwork-appbase/packages/pc-react/foundation/*"
-  - "../sdkwork-iam/apps/sdkwork-iam-common/packages/*"
-  - "../sdkwork-iam/apps/sdkwork-iam-pc/packages/*"
-  - "../sdkwork-iam/sdks/sdkwork-iam-app-sdk/sdkwork-iam-app-sdk-typescript"
-  - "../sdkwork-iam/sdks/sdkwork-iam-backend-sdk/sdkwork-iam-backend-sdk-typescript"
-  - "../sdkwork-sdk-commons/sdkwork-sdk-common-typescript"
-  - "../sdkwork-search/apps/sdkwork-search-common/packages/*"
-  - "../sdkwork-search/apps/sdkwork-search-pc/packages/*"
-  - "../sdkwork-drive/sdks/sdkwork-drive-app-sdk/sdkwork-drive-app-sdk-typescript"
-  - "../sdkwork-utils/packages/sdkwork-utils-typescript"
+  - "apps/*"
+  - "sdks/*"
+  - "tools/*"
+
 
 catalog:
   "@monaco-editor/react": ^4.7.0
@@ -92,7 +79,6 @@ catalog:
   "@xterm/addon-web-links": ^0.12.0
   "@xterm/addon-webgl": ^0.19.0
   "@xterm/xterm": ^6.0.0
-  "@tanstack/react-query": ^5.96.2
   autoprefixer: ^10.4.21
   class-variance-authority: ^0.7.1
   clsx: ^2.1.1
@@ -126,7 +112,3 @@ catalog:
   vite-plugin-dts: ^4.5.4
   vitest: ^4.1.8
   zustand: ^5.0.12
-
-ignoredBuiltDependencies:
-  - esbuild
-  - protobufjs

@@ -1,4 +1,4 @@
-# Notes topology profiles
+# Canvas topology profiles
 
 Machine contract: `specs/topology.spec.json` (`schemaVersion: 2`, archetype `application-http-gateway`).
 

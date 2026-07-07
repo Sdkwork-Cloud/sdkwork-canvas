@@ -1,13 +1,13 @@
-//! Notes persistence entities for `sdkwork-database-repository`.
+//! Canvas persistence entities for `sdkwork-database-repository`.
 //!
 //! These entities align with `database/contract/table-registry.json` and provide
-//! canonical table metadata for repository integration. `SqlNotesStore` continues
+//! canonical table metadata for repository integration. `SqlCanvasStore` continues
 //! to own complex query paths while table contracts live here.
 
 use sdkwork_database_repository::{impl_entity_string_pk, Entity};
 use serde::{Deserialize, Serialize};
 
-pub const canvas_REGISTRY_TABLES: &[&str] = &[
+pub const CANVAS_REGISTRY_TABLES: &[&str] = &[
     "canvas_workspace",
     "canvas_page",
     "canvas_page_search_projection",
@@ -18,7 +18,7 @@ pub const canvas_REGISTRY_TABLES: &[&str] = &[
 ];
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesWorkspaceEntity {
+pub struct CanvasWorkspaceEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -39,7 +39,7 @@ pub struct NotesWorkspaceEntity {
 }
 
 impl_entity_string_pk!(
-    NotesWorkspaceEntity,
+    CanvasWorkspaceEntity,
     "canvas_workspace",
     id,
     [
@@ -64,7 +64,7 @@ impl_entity_string_pk!(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesPageEntity {
+pub struct CanvasPageEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -100,7 +100,7 @@ pub struct NotesPageEntity {
 }
 
 impl_entity_string_pk!(
-    NotesPageEntity,
+    CanvasPageEntity,
     "canvas_page",
     id,
     [
@@ -140,7 +140,7 @@ impl_entity_string_pk!(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesPageSearchProjectionEntity {
+pub struct CanvasPageSearchProjectionEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -162,7 +162,7 @@ pub struct NotesPageSearchProjectionEntity {
 }
 
 impl_entity_string_pk!(
-    NotesPageSearchProjectionEntity,
+    CanvasPageSearchProjectionEntity,
     "canvas_page_search_projection",
     id,
     [
@@ -188,7 +188,7 @@ impl_entity_string_pk!(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesAiJobEntity {
+pub struct CanvasAiJobEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -215,7 +215,7 @@ pub struct NotesAiJobEntity {
 }
 
 impl_entity_string_pk!(
-    NotesAiJobEntity,
+    CanvasAiJobEntity,
     "canvas_ai_job",
     id,
     [
@@ -246,7 +246,7 @@ impl_entity_string_pk!(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesAiJobSourceEntity {
+pub struct CanvasAiJobSourceEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -263,7 +263,7 @@ pub struct NotesAiJobSourceEntity {
 }
 
 impl_entity_string_pk!(
-    NotesAiJobSourceEntity,
+    CanvasAiJobSourceEntity,
     "canvas_ai_job_source",
     id,
     [
@@ -284,7 +284,7 @@ impl_entity_string_pk!(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesAiSuggestionEntity {
+pub struct CanvasAiSuggestionEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -306,7 +306,7 @@ pub struct NotesAiSuggestionEntity {
 }
 
 impl_entity_string_pk!(
-    NotesAiSuggestionEntity,
+    CanvasAiSuggestionEntity,
     "canvas_ai_suggestion",
     id,
     [
@@ -332,7 +332,7 @@ impl_entity_string_pk!(
 );
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-pub struct NotesAiFeedbackEntity {
+pub struct CanvasAiFeedbackEntity {
     pub id: String,
     pub tenant_id: String,
     pub organization_id: String,
@@ -346,7 +346,7 @@ pub struct NotesAiFeedbackEntity {
 }
 
 impl_entity_string_pk!(
-    NotesAiFeedbackEntity,
+    CanvasAiFeedbackEntity,
     "canvas_ai_feedback",
     id,
     [
@@ -365,13 +365,13 @@ impl_entity_string_pk!(
 
 pub fn registered_entity_table_names() -> Vec<&'static str> {
     vec![
-        NotesWorkspaceEntity::table_name(),
-        NotesPageEntity::table_name(),
-        NotesPageSearchProjectionEntity::table_name(),
-        NotesAiJobEntity::table_name(),
-        NotesAiJobSourceEntity::table_name(),
-        NotesAiSuggestionEntity::table_name(),
-        NotesAiFeedbackEntity::table_name(),
+        CanvasWorkspaceEntity::table_name(),
+        CanvasPageEntity::table_name(),
+        CanvasPageSearchProjectionEntity::table_name(),
+        CanvasAiJobEntity::table_name(),
+        CanvasAiJobSourceEntity::table_name(),
+        CanvasAiSuggestionEntity::table_name(),
+        CanvasAiFeedbackEntity::table_name(),
     ]
 }
 
@@ -381,12 +381,12 @@ mod tests {
 
     #[test]
     fn registry_tables_match_database_contract() {
-        assert_eq!(registered_entity_table_names(), canvas_REGISTRY_TABLES);
+        assert_eq!(registered_entity_table_names(), CANVAS_REGISTRY_TABLES);
     }
 
     #[test]
     fn workspace_entity_declares_primary_key_column() {
-        assert_eq!(NotesWorkspaceEntity::primary_key_column(), "id");
-        assert_eq!(NotesWorkspaceEntity::table_name(), "canvas_workspace");
+        assert_eq!(CanvasWorkspaceEntity::primary_key_column(), "id");
+        assert_eq!(CanvasWorkspaceEntity::table_name(), "canvas_workspace");
     }
 }

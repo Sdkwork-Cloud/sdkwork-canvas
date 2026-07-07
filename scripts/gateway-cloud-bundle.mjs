@@ -14,7 +14,7 @@ import {
 } from './lib/canvas-topology.mjs';
 
 const repoRoot = REPO_ROOT;
-const manifestPath = path.join(repoRoot, 'sdkwork-canvas-pc-react', 'sdkwork.app.config.json');
+const manifestPath = path.join(repoRoot, 'apps', 'sdkwork-canvas-pc', 'sdkwork.app.config.json');
 const SUPPORTED_FORMAT = 'tar.gz';
 
 async function main() {
@@ -41,7 +41,7 @@ async function main() {
 function printHelp() {
   console.log(`Usage: node scripts/gateway-cloud-bundle.mjs <bundle|validate> [options]
 
-Bundle Notes-owned sdkwork-api-cloud-gateway route configs for cloud topology deployment.
+Bundle Canvas-owned sdkwork-api-cloud-gateway route configs for cloud topology deployment.
 The sdkwork-api-cloud-gateway binary is built and released from the sdkwork-api-cloud-gateway repository.
 
 Options:
@@ -134,12 +134,12 @@ async function bundleCloudConfig(context) {
     await copyFile(source, path.join(configDir, configName));
   }
 
-  const readme = `# Notes Cloud Gateway Config Bundle
+  const readme = `# Canvas Cloud Gateway Config Bundle
 
 Version: ${context.version}
 Profile: ${context.profile}
 
-These TOML files configure sdkwork-api-cloud-gateway for Notes cloud topology.
+These TOML files configure sdkwork-api-cloud-gateway for Canvas cloud topology.
 Build and deploy the gateway binary from the sdkwork-api-cloud-gateway repository.
 
 Included configs:

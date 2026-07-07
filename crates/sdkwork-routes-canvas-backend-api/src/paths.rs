@@ -1,5 +1,5 @@
 pub const BACKEND_API_PREFIX: &str = "/backend/v3/api";
-pub const canvas_PREFIX: &str = "/backend/v3/api/canvas";
+pub const CANVAS_PREFIX: &str = "/backend/v3/api/canvas";
 
 pub const AI_JOBS: &str = "/backend/v3/api/canvas/ai_jobs";
 pub const AI_JOB: &str = "/backend/v3/api/canvas/ai_jobs/{ai_job_id}";

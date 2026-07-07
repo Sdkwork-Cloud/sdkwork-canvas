@@ -1,0 +1,40 @@
+# SDKWork Canvas topology (human reference; machine authority: specs/topology.spec.json)
+# Authority: ../sdkwork-specs/APP_RUNTIME_TOPOLOGY_SPEC.md
+
+application:
+  code: canvas
+  serviceLayout: split-services
+
+profiles:
+  standalone:
+    services:
+      - name: sdkwork-canvas-standalone-gateway
+        kind: http
+        port: 3900
+        binary: sdkwork-canvas-standalone-gateway
+        routes:
+          - prefix: /app/v3/api/canvas
+            surface: app-api
+          - prefix: /backend/v3/api/canvas
+            surface: backend-api
+
+  cloud:
+    services:
+      - name: sdkwork-canvas-standalone-gateway
+        kind: http
+        port: 3900
+        binary: sdkwork-canvas-standalone-gateway
+        routes:
+          - prefix: /app/v3/api/canvas
+            surface: app-api
+          - prefix: /backend/v3/api/canvas
+            surface: backend-api
+
+database:
+  defaultEngine: postgres
+  supportedEngines:
+    - postgres
+    - sqlite
+
+discovery:
+  mode: static

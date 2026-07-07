@@ -1,40 +1,16 @@
-# deployments/
+# Deployments
 
-Deployment manifests, release topology handoff, and environment-specific deployment profiles for SDKWork Canvas.
+Deployment descriptors and runbooks for the `sdkwork-canvas` repository.
 
-## Deploy manifest
+Authority: `../sdkwork-specs/DEPLOYMENT_SPEC.md`, `../sdkwork-specs/SDKWORK_DEPLOY_SPEC.md`.
 
-Per `SDKWORK_DEPLOY_SPEC.md`, this repository owns a single deployment contract:
+## Files
 
-- [deploy.yaml](deploy.yaml) — multi-profile deploy manifest (`cloud.split-services.production` default)
+- `deploy.yaml`: per-application deploy manifest, install layouts, adaptive Web, API/WebSocket inference, Nginx site generation, client package orchestration per `SDKWORK_DEPLOY_SPEC.md`.
+- `kubernetes/`: Kubernetes deployment descriptors (when applicable).
+- `observability/`: observability deployment config (when applicable).
 
-Validate:
+## Rules
 
-```bash
-pnpm deploy:validate
-pnpm deploy:plan
-```
-
-## Topology and gateway
-
-Current deployment topology is declared in:
-
-- [../specs/topology.spec.json](../specs/topology.spec.json)
-- [../configs/topology/](../configs/topology/)
-- [../configs/sdkwork-api-cloud-gateway.canvas.development.toml](../configs/sdkwork-api-cloud-gateway.canvas.development.toml)
-- [../configs/sdkwork-api-cloud-gateway.canvas.production.toml](../configs/sdkwork-api-cloud-gateway.canvas.production.toml)
-
-## Packaging
-
-GitHub packaging uses [../sdkwork.workflow.json](../sdkwork.workflow.json) and [../.github/workflows/package.yml](../.github/workflows/package.yml).
-
-Desktop release targets are declared in `sdkwork.workflow.json` and referenced from `deploy.yaml` `packages` (`desktop-windows`, `desktop-macos`, `desktop-linux`).
-
-## Production Drive integration
-
-Production topology profiles set:
-
-- `SDKWORK_CANVAS_USE_MEMORY_DRIVE=0`
-- `SDKWORK_DRIVE_FACADE_URL=https://api.sdkwork.com`
-
-Local development defaults to in-memory Drive unless `SDKWORK_CANVAS_USE_MEMORY_DRIVE=0` and `SDKWORK_DRIVE_FACADE_URL` are set.
+- Standalone/cloud deployment profile parity must be maintained per `DEPLOYMENT_SPEC.md`.
+- Application deploy manifests follow `SDKWORK_DEPLOY_SPEC.md` and are validated by `deployctl`.

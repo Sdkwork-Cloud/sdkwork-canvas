@@ -1,20 +1,17 @@
-# SDKWork Workspace
+# SDKWork Workspace Metadata
 
-This .sdkwork/ directory is source-controlled workspace metadata for $name.
+This directory holds source-controlled SDKWork workspace metadata, local skills, and local plugins for the `sdkwork-canvas` repository.
 
-It is governed by $specPath/SDKWORK_WORKSPACE_SPEC.md and follows the standards entrypoint at $specPath/README.md.
+Authority: `../sdkwork-specs/SDKWORK_WORKSPACE_SPEC.md`.
 
-Authoritative local entries:
+## Structure
 
-- README.md: purpose and ownership for this workspace metadata directory.
-- skills/README.md: repository or application skill contribution guidance.
-- plugins/README.md: repository or application plugin contribution guidance.
-- package and language manifests: repository component discovery.
+- `skills/`: local agent skills specific to this repository.
+- `plugins/`: local agent plugins specific to this repository.
+- `.gitignore`: ignores generator-owned and runtime-owned files.
 
-This directory is not runtime state. Do not store generated SDK transport output, secrets, local credentials, runtime databases, cache, logs, or user-private files here.
+## Rules
 
-## Execution References
-
-- Agent entrypoint: `AGENTS.md`
-- Shared execution soul: `../sdkwork-specs/SOUL.md`
-- Workspace metadata standard: `../sdkwork-specs/SDKWORK_WORKSPACE_SPEC.md`
+- Do not add secrets, local runtime data, generated transport output, or user-private files here.
+- Generated SDK output `.sdkwork/sdkwork-generator-*.json` remains generator-owned.
+- Runtime `~/.sdkwork/<application-code>` remains user-private runtime state governed by `RUNTIME_DIRECTORY_SPEC.md`.

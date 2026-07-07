@@ -1,6 +1,20 @@
-schemaVersion: 1
+schema_version: 1
 kind: sdkwork.database.drift-policy
-rules:
-  ignoreTables: []
-  ignoreColumns: []
-  severityOverrides: {}
+module_id: canvas
+owner_team: canvas-platform
+enforcement_mode: observe
+check_interval_sec: 60
+checks:
+  - kind: table_exists
+    table: canvas_workspace
+  - kind: table_exists
+    table: canvas_page
+  - kind: table_exists
+    table: canvas_ai_job
+  - kind: column_exists
+    table: canvas_workspace
+    column: tenant_id
+  - kind: column_exists
+    table: canvas_page
+    column: drive_node_id
+future_enforcement_mode: enforce

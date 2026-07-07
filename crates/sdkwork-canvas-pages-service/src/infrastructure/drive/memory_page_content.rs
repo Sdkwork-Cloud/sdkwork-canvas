@@ -5,7 +5,7 @@ use async_trait::async_trait;
 use tokio::sync::Mutex;
 
 use crate::domain::{DrivePageContentSnapshot, DriveVersionPage, DriveVersionSummary, PageInfo};
-use crate::error::NotesProductError;
+use crate::error::CanvasProductError;
 use crate::ports::{
     CreateDrivePageContentCommand, DrivePageContentPort, ListDrivePageContentVersionsCommand,
     ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
@@ -24,7 +24,7 @@ impl DrivePageContentPort for MemoryDrivePageContentPort {
     async fn create_page_content(
         &self,
         command: CreateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         let snapshot = DrivePageContentSnapshot {
             drive_space_id: command.drive_space_id.clone(),
             drive_node_id: format!("drive-node-{}", command.page_id),
@@ -58,7 +58,7 @@ impl DrivePageContentPort for MemoryDrivePageContentPort {
     async fn update_page_content(
         &self,
         command: UpdateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         let next_version_no = self
             .versions
             .lock()
@@ -102,19 +102,19 @@ impl DrivePageContentPort for MemoryDrivePageContentPort {
     async fn read_page_content(
         &self,
         command: ReadDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         self.records
             .lock()
             .await
             .get(&command.page_id)
             .cloned()
-            .ok_or_else(|| NotesProductError::NotFound("page content not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("page content not found".to_string()))
     }
 
     async fn restore_page_content_version(
         &self,
         command: RestoreDrivePageContentVersionCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         let source = self
             .versions
             .lock()
@@ -127,7 +127,7 @@ impl DrivePageContentPort for MemoryDrivePageContentPort {
                     .cloned()
             })
             .ok_or_else(|| {
-                NotesProductError::NotFound("page content version not found".to_string())
+                CanvasProductError::NotFound("page content version not found".to_string())
             })?;
         let next_version_no = self
             .versions
@@ -161,14 +161,14 @@ impl DrivePageContentPort for MemoryDrivePageContentPort {
     async fn list_page_content_versions(
         &self,
         command: ListDrivePageContentVersionsCommand,
-    ) -> Result<DriveVersionPage, NotesProductError> {
+    ) -> Result<DriveVersionPage, CanvasProductError> {
         let current = self
             .records
             .lock()
             .await
             .get(&command.page_id)
             .cloned()
-            .ok_or_else(|| NotesProductError::NotFound("page content not found".to_string()))?;
+            .ok_or_else(|| CanvasProductError::NotFound("page content not found".to_string()))?;
 
         Ok(DriveVersionPage {
             items: vec![

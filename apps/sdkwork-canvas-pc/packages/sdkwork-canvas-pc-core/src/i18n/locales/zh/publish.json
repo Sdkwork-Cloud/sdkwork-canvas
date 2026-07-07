@@ -1,0 +1,19 @@
+{
+  "title": "发布到公众号",
+  "success": "发布成功",
+  "successDesc": "文章已成功同步至微信公众号草稿箱",
+  "cover": "封面图片 (Cover)",
+  "changeCover": "更换封面",
+  "clickToSetCover": "点击设置封面缩略图",
+  "coverSizeSuggest": "建议尺寸 900x383 像素",
+  "articleTitle": "标题 (Title)",
+  "changeTitleInEditor": "在编辑器中修改标题",
+  "digest": "摘要 (Digest)",
+  "digestPlaceholder": "选填，如果不填会默认抓取正文前54个字",
+  "syncTo": "同步至",
+  "myAccount": "我的公众号",
+  "cancel": "取消",
+  "publishing": "发布中...",
+  "confirmPublish": "确认发布",
+  "enterCoverUrl": "输入封面链接"
+}

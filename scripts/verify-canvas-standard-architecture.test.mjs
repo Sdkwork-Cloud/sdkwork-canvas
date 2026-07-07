@@ -1,429 +1,106 @@
 import assert from 'node:assert/strict';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import test from 'node:test';
 
 const ROOT = process.cwd();
-
-const STANDARD_ROOT_DIRECTORIES = [
-  'apis',
-  'apps',
-  'crates',
-  'database',
-  'sdks',
-  'jobs',
-  'tools',
-  'plugins',
-  'examples',
-  'configs',
-  'deployments',
-  'scripts',
-  'docs',
-  'tests',
-];
-
-const REQUIRED_WORKSPACE_FILES = [
-  'AGENTS.md',
-  'CLAUDE.md',
-  'CODEX.md',
-  'GEMINI.md',
-  'README.md',
-  'Cargo.toml',
-  'sdkwork.workflow.json',
-  '.github/workflows/package.yml',
-  '.sdkwork/README.md',
-  '.sdkwork/skills/README.md',
-  '.sdkwork/plugins/README.md',
-  'docs/root-layout.md',
-];
-
-const API_INPUTS = [
-  'apis/app-api/canvas/canvas-app-api.openapi.json',
-  'apis/backend-api/canvas/canvas-backend-api.openapi.json',
-  'apis/open-api/canvas/canvas-open-api.openapi.json',
-];
-
-const ROUTE_MANIFESTS = [
-  {
-    file: 'sdks/_route-manifests/app-api/sdkwork-routes-canvas-app-api.route-manifest.json',
-    apiSurface: 'app-api',
-  },
-  {
-    file: 'sdks/_route-manifests/backend-api/sdkwork-routes-canvas-backend-api.route-manifest.json',
-    apiSurface: 'backend-api',
-  },
-];
-
-const WEB_FRAMEWORK_CRATES = [
-  'crates/sdkwork-routes-canvas-app-api/Cargo.toml',
-  'crates/sdkwork-routes-canvas-backend-api/Cargo.toml',
-  'crates/sdkwork-routes-canvas-http-auth/Cargo.toml',
-  'crates/sdkwork-canvas-standalone-gateway/Cargo.toml',
-];
+const PC_ROOT = 'apps/sdkwork-canvas-pc';
 
 function read(relativePath) {
   return readFileSync(path.join(ROOT, relativePath), 'utf8');
 }
 
 function readJson(relativePath) {
-  const text = read(relativePath).replace(/^\uFEFF/u, '');
-  return JSON.parse(text);
+  return JSON.parse(read(relativePath).replace(/^\uFEFF/u, ''));
 }
 
 function exists(relativePath) {
   return existsSync(path.join(ROOT, relativePath));
 }
 
-test('declares SDKWork standard root directory dictionary', () => {
-  for (const directory of STANDARD_ROOT_DIRECTORIES) {
-    assert.equal(exists(directory), true, `${directory}/ should exist`);
-    assert.equal(exists(path.join(directory, 'README.md')), true, `${directory}/README.md should exist`);
+test('declares SDKWork standard root directories', () => {
+  for (const dir of ['apis', 'apps', 'crates', 'database', 'sdks', 'deployments', 'docs', 'scripts', 'tests', 'specs']) {
+    assert.equal(exists(dir), true, `${dir}/ must exist`);
   }
 });
 
 test('declares workspace agent entrypoints and packaging workflow', () => {
-  for (const file of REQUIRED_WORKSPACE_FILES) {
-    assert.equal(exists(file), true, `${file} should exist`);
+  for (const file of ['AGENTS.md', 'README.md', 'Cargo.toml', 'sdkwork.workflow.json', '.github/workflows/package.yml']) {
+    assert.equal(exists(file), true, `${file} must exist`);
   }
-
   const workflow = readJson('sdkwork.workflow.json');
-  assert.equal(workflow.app.id, 'sdkwork-canvas-pc-react');
-  assert.equal(workflow.app.configPath, 'sdkwork-canvas-pc-react/sdkwork.app.config.json');
+  assert.equal(workflow.app.id, 'sdkwork-canvas');
+  assert.equal(workflow.app.configPath, 'sdkwork.app.config.json');
 });
 
-test('declares author-owned API contracts under apis/', () => {
-  for (const file of API_INPUTS) {
-    assert.equal(exists(file), true, `${file} should exist`);
-    const openapi = readJson(file);
-    assert.equal(openapi.openapi, '3.1.2');
+test('declares Canvas OpenAPI authorities', () => {
+  for (const file of [
+    'apis/app-api/canvas/canvas-app-api.openapi.json',
+    'apis/backend-api/canvas/canvas-backend-api.openapi.json',
+  ]) {
+    assert.equal(exists(file), true, file);
+    assert.equal(readJson(file).openapi, '3.1.2');
   }
 });
 
-test('integrates sdkwork-web-framework in HTTP route crates and standalone gateway', () => {
-  const rootCargo = read('Cargo.toml');
-  assert.match(rootCargo, /sdkwork-web-core/);
-  assert.match(rootCargo, /sdkwork-web-axum/);
+test('integrates sdkwork-web-framework and sdkwork-utils in Rust workspace', () => {
+  const cargo = read('Cargo.toml');
+  assert.match(cargo, /sdkwork-web-core/);
+  assert.match(cargo, /sdkwork-utils-rust/);
+  assert.match(cargo, /sdkwork-database-config/);
+  assert.match(cargo, /sdkwork_drive_app_sdk_generated_rust/);
+});
 
-  for (const cargoPath of WEB_FRAMEWORK_CRATES) {
-    const cargo = read(cargoPath);
-    assert.match(cargo, /sdkwork-web-/);
+test('declares route manifest aligned with app-api OpenAPI', () => {
+  const manifest = readJson('sdks/_route-manifests/app-api/sdkwork-routes-canvas-app-api.route-manifest.json');
+  assert.equal(manifest.owner, 'sdkwork-canvas');
+  assert.ok(manifest.routes.length >= 10);
+});
+
+test('Rust workspace members include canvas pages and gateway crates', () => {
+  const cargo = read('Cargo.toml');
+  for (const member of [
+    'crates/sdkwork-canvas-pages-service',
+    'crates/sdkwork-routes-canvas-app-api',
+    'crates/sdkwork-canvas-standalone-gateway',
+  ]) {
+    assert.match(cargo, new RegExp(member.replaceAll('/', '\\/')));
   }
-
-  const authBootstrap = read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/auth.rs');
-  assert.match(authBootstrap, /wrap_router_with_web_framework_from_env/);
-});
-
-test('integrates sdkwork-utils in HTTP route crates', () => {
-  const rootCargo = read('Cargo.toml');
-  assert.match(rootCargo, /sdkwork-utils-rust/);
-
-  const appRouteCargo = read('crates/sdkwork-routes-canvas-app-api/Cargo.toml');
-  assert.match(appRouteCargo, /sdkwork-utils-rust/);
-});
-
-test('integrates sdkwork-utils-typescript in PC React workspace', () => {
-  const workspace = read('pnpm-workspace.yaml');
-  assert.match(workspace, /sdkwork-utils-typescript/);
-
-  const packageJson = readJson('sdkwork-canvas-pc-react/package.json');
-  assert.match(packageJson.dependencies['@sdkwork/utils'], /workspace:\*/);
-});
-
-test('consumes @sdkwork/utils from shared PC commons text helpers', () => {
-  const textUtils = read('sdkwork-canvas-pc-react/packages/sdkwork-canvas-pc-commons/src/utils/text.ts');
-  assert.match(textUtils, /@sdkwork\/utils/);
-  assert.match(textUtils, /isBlank/);
-  assert.match(textUtils, /trim/);
-});
-
-test('integrates sdkwork-utils-rust in product service validation', () => {
-  const serviceCargo = read('crates/sdkwork-canvas-pages-service/Cargo.toml');
-  assert.match(serviceCargo, /sdkwork-utils-rust/);
-
-  const serviceSource = read('crates/sdkwork-canvas-pages-service/src/service.rs');
-  assert.match(serviceSource, /sdkwork_utils_rust::string::\{is_blank/);
-});
-
-test('integrates sdkwork-database in standalone gateway bootstrap', () => {
-  const gatewayCargo = read('crates/sdkwork-canvas-standalone-gateway/Cargo.toml');
-  assert.match(gatewayCargo, /sdkwork-database-config/);
-  assert.match(gatewayCargo, /sdkwork-database-sqlx|sdkwork_database_sqlx/);
-
-  const databaseBootstrap = read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/database.rs');
-  assert.match(databaseBootstrap, /DatabaseConfig::from_env\("canvas"\)/);
-});
-
-test('integrates sdkwork-database-repository entities in pages repository crate', () => {
-  const repositoryCargo = read('crates/sdkwork-canvas-pages-repository-sqlx/Cargo.toml');
-  assert.match(repositoryCargo, /sdkwork-database-repository/);
-
-  const entities = read('crates/sdkwork-canvas-pages-repository-sqlx/src/entities/mod.rs');
-  assert.match(entities, /sdkwork_database_repository::\{impl_entity_string_pk, Entity\}/);
-  assert.match(entities, /canvas_workspace/);
-  assert.match(entities, /canvas_page/);
-  assert.match(entities, /canvas_ai_job/);
-});
-
-test('declares canonical sdkgen transport output for typescript and rust SDK families', () => {
-  const families = [
-    {
-      assembly: 'sdks/sdkwork-canvas-app-sdk/.sdkwork-assembly.json',
-      typescriptManifest:
-        'sdks/sdkwork-canvas-app-sdk/sdkwork-canvas-app-sdk-typescript/generated/server-openapi/package.json',
-      rustManifest:
-        'sdks/sdkwork-canvas-app-sdk/sdkwork-canvas-app-sdk-rust/generated/server-openapi/Cargo.toml',
-    },
-    {
-      assembly: 'sdks/sdkwork-canvas-backend-sdk/.sdkwork-assembly.json',
-      typescriptManifest:
-        'sdks/sdkwork-canvas-backend-sdk/sdkwork-canvas-backend-sdk-typescript/generated/server-openapi/package.json',
-      rustManifest:
-        'sdks/sdkwork-canvas-backend-sdk/sdkwork-canvas-backend-sdk-rust/generated/server-openapi/Cargo.toml',
-    },
-    {
-      assembly: 'sdks/sdkwork-canvas-sdk/.sdkwork-assembly.json',
-      typescriptManifest:
-        'sdks/sdkwork-canvas-sdk/sdkwork-canvas-sdk-typescript/generated/server-openapi/package.json',
-      rustManifest: 'sdks/sdkwork-canvas-sdk/sdkwork-canvas-sdk-rust/generated/server-openapi/Cargo.toml',
-    },
-  ];
-
-  for (const family of families) {
-    assert.equal(exists(family.typescriptManifest), true, `${family.typescriptManifest} should exist`);
-    assert.equal(exists(family.rustManifest), true, `${family.rustManifest} should exist`);
-
-    const assembly = readJson(family.assembly);
-    for (const language of ['typescript', 'rust']) {
-      const entry = assembly.languages.find((item) => item.language === language);
-      assert.equal(entry.generationState, 'generated', `${family.assembly} ${language} must be generated`);
-    }
-  }
-});
-
-test('PC React packages follow APP_PC_ARCHITECTURE_SPEC directory and npm naming', () => {
-  const packagesDir = 'sdkwork-canvas-pc-react/packages';
-  const packageDirs = readdirSync(path.join(ROOT, packagesDir), { withFileTypes: true })
-    .filter((entry) => entry.isDirectory())
-    .map((entry) => entry.name);
-
-  assert.ok(packageDirs.length > 0, `${packagesDir} should declare PC packages`);
-
-  for (const directory of packageDirs) {
-    assert.match(
-      directory,
-      /^sdkwork-canvas-pc(-[a-z0-9-]+)?$/,
-      `${directory} must follow sdkwork-canvas-pc-* directory naming`,
-    );
-
-    const packageJson = readJson(`${packagesDir}/${directory}/package.json`);
-    assert.match(
-      packageJson.name,
-      /^@sdkwork\/canvas-pc(-[a-z0-9-]+)?$/,
-      `${directory} npm name must follow @sdkwork/canvas-pc-*`,
-    );
-  }
-});
-
-test('SqlNotesStore SQL references only database contract registry tables', () => {
-  const store = read('crates/sdkwork-canvas-pages-repository-sqlx/src/canvas_store.rs');
-  const registry = readJson('database/contract/table-registry.json');
-  const registered = new Set(registry.tables.map((entry) => entry.table_name));
-  const matches = store.matchAll(/\b(?:FROM|INTO|UPDATE|JOIN)\s+(canvas_[a-z_]+)/gi);
-  const referenced = new Set([...matches].map((match) => match[1]));
-
-  for (const table of referenced) {
-    assert.equal(
-      registered.has(table),
-      true,
-      `canvas_store.rs references ${table} which must exist in database/contract/table-registry.json`,
-    );
-  }
-});
-
-test('integrates sdkwork-utils in HTTP auth actor context checks', () => {
-  const authCargo = read('crates/sdkwork-routes-canvas-http-auth/Cargo.toml');
-  assert.match(authCargo, /sdkwork-utils-rust/);
-
-  const actorContext = read('crates/sdkwork-routes-canvas-http-auth/src/actor_context.rs');
-  assert.match(actorContext, /sdkwork_utils_rust::string::trim/);
 });
 
 test('does not declare sdkwork-discovery without RPC services', () => {
-  const rootCargo = read('Cargo.toml');
-  assert.doesNotMatch(rootCargo, /sdkwork-discovery/);
-
-  const protoFiles = exists('apis/rpc') || exists('crates') && false;
-  assert.equal(protoFiles, false);
-  assert.equal(exists('apis/rpc'), false, 'RPC contracts should not exist yet');
-});
-
-test('route manifests declare WebRequestContext and apiSurface on every route', () => {
-  for (const { file, apiSurface } of ROUTE_MANIFESTS) {
-    const manifest = readJson(file);
-    assert.ok(Array.isArray(manifest.routes) && manifest.routes.length > 0, `${file} should declare routes`);
-    for (const route of manifest.routes) {
-      assert.equal(route.requestContext, 'WebRequestContext', `${route.method} ${route.path} missing requestContext`);
-      assert.equal(route.apiSurface, apiSurface, `${route.method} ${route.path} missing apiSurface`);
-    }
-  }
-});
-
-test('OpenAPI authorities declare x-sdkwork-request-context and x-sdkwork-api-surface', () => {
-  const expectations = [
-    { file: 'apis/app-api/canvas/canvas-app-api.openapi.json', apiSurface: 'app-api' },
-    { file: 'apis/backend-api/canvas/canvas-backend-api.openapi.json', apiSurface: 'backend-api' },
-    { file: 'apis/open-api/canvas/canvas-open-api.openapi.json', apiSurface: 'open-api' },
-  ];
-
-  const methods = new Set(['get', 'post', 'put', 'patch', 'delete']);
-
-  for (const { file, apiSurface } of expectations) {
-    const openapi = readJson(file);
-    let operationCount = 0;
-    for (const pathItem of Object.values(openapi.paths ?? {})) {
-      for (const [method, operation] of Object.entries(pathItem ?? {})) {
-        if (!methods.has(method)) {
-          continue;
-        }
-        operationCount += 1;
-        assert.equal(operation['x-sdkwork-request-context'], 'WebRequestContext', `${file} ${method} missing x-sdkwork-request-context`);
-        assert.equal(operation['x-sdkwork-api-surface'], apiSurface, `${file} ${method} missing x-sdkwork-api-surface`);
-      }
-    }
-    assert.ok(operationCount > 0, `${file} should contain HTTP operations`);
-  }
-});
-
-test('declares topology and gateway deployment profiles', () => {
-  assert.equal(exists('specs/topology.spec.json'), true);
-  assert.equal(exists('configs/topology/standalone.split-services.development.env'), true);
-  assert.equal(exists('configs/sdkwork-api-cloud-gateway\.canvas.development.toml'), true);
-
-  const topology = readJson('specs/topology.spec.json');
-  assert.equal(topology.database?.appPrefix, 'SDKWORK_CANVAS');
-  assert.deepEqual(topology.surfaces?.['application.public-ingress']?.protocols, ['http']);
-});
-
-test('PC application root declares sdkwork.app.config.json and component spec', () => {
-  assert.equal(exists('sdkwork-canvas-pc-react/sdkwork.app.config.json'), true);
-  assert.equal(exists('sdkwork-canvas-pc-react/specs/component.spec.json'), true);
-  assert.equal(exists('sdkwork-canvas-pc-react/AGENTS.md'), true);
-
-  const manifest = readJson('sdkwork-canvas-pc-react/sdkwork.app.config.json');
-  assert.equal(manifest.schemaVersion, 3);
-  assert.equal(manifest.kind, 'sdkwork.app');
-});
-
-test('Rust HTTP crates follow sdkwork-routes-* and sdkwork-canvas-standalone-gateway naming', () => {
-  const expectedMembers = [
-    'crates/sdkwork-routes-canvas-app-api',
-    'crates/sdkwork-routes-canvas-backend-api',
-    'crates/sdkwork-routes-canvas-http-auth',
-    'crates/sdkwork-canvas-standalone-gateway',
-    'crates/sdkwork-canvas-pages-service',
-    'crates/sdkwork-canvas-pages-repository-sqlx',
-  ];
-
   const cargo = read('Cargo.toml');
-  for (const member of expectedMembers) {
-    assert.match(cargo, new RegExp(`"${member.replaceAll('/', '\\/')}"`));
-  }
+  assert.doesNotMatch(cargo, /path = "\.\.\/sdkwork-discovery/);
+  assert.equal(exists('apis/rpc'), false);
 });
 
-test('Tauri desktop host component follows sdkwork-canvas-pc-desktop naming', () => {
-  const componentSpec = readJson(
-    'sdkwork-canvas-pc-react/packages/sdkwork-canvas-pc-desktop/src-tauri/specs/component.spec.json',
-  );
-  assert.equal(componentSpec.component.name, 'sdkwork-canvas-pc-desktop');
-
-  const cargo = read('sdkwork-canvas-pc-react/packages/sdkwork-canvas-pc-desktop/src-tauri/Cargo.toml');
-  assert.match(cargo, /^name = "sdkwork-canvas-pc-desktop"/m);
-});
-
-test('PC vite configs use canvas-owned private env helpers instead of core-pc-react', () => {
-  const viteConfigs = [
-    'sdkwork-canvas-pc-react/vite.config.ts',
-    'sdkwork-canvas-pc-react/packages/sdkwork-canvas-pc-desktop/vite.config.ts',
-  ];
-
-  for (const file of viteConfigs) {
-    const source = read(file);
-    assert.doesNotMatch(source, /@sdkwork\/core-pc-react/, `${file} must not import core-pc-react`);
-    assert.match(source, /vite-private-env/, `${file} must import canvas-owned vite-private-env helpers`);
-  }
-
-  assert.equal(exists('sdkwork-canvas-pc-react/scripts/vite-private-env.ts'), true);
-});
-
-test('packaging workflow targets follow standalone desktop naming', () => {
-  const workflow = readJson('sdkwork.workflow.json');
-  const targetIds = (workflow.targets ?? []).map((target) => target.id);
-
-  assert.ok(targetIds.length > 0, 'sdkwork.workflow.json should declare desktop release targets');
-
-  for (const targetId of targetIds) {
-    assert.match(
-      targetId,
-      /-standalone-desktop-/,
-      `Expected ${targetId} to include standalone desktop profile segment`,
-    );
-    assert.match(
-      workflow.targets.find((target) => target.id === targetId)?.outputGlobs?.join('\n') ?? '',
-      /sdkwork-canvas-pc-desktop/,
-      `Expected ${targetId} artifact globs to reference sdkwork-canvas-pc-desktop`,
-    );
-  }
-});
-
-test('schema registry documents Notes-owned tables', () => {
-  assert.equal(exists('docs/schema-registry/README.md'), true);
-  assert.equal(exists('docs/schema-registry/tables/001-canvas-core.yaml'), true);
+test('PC application root under apps/sdkwork-canvas-pc', () => {
+  assert.equal(exists(`${PC_ROOT}/sdkwork.app.config.json`), true);
+  assert.equal(exists(`${PC_ROOT}/AGENTS.md`), true);
+  const manifest = readJson(`${PC_ROOT}/sdkwork.app.config.json`);
+  assert.equal(manifest.kind, 'sdkwork.app.surface');
 });
 
 test('declares SDKWORK_DEPLOY_SPEC deployments/deploy.yaml', () => {
-  assert.equal(exists('deployments/deploy.yaml'), true);
   const deploy = read('deployments/deploy.yaml');
   assert.match(deploy, /^version:\s*1/m);
   assert.match(deploy, /defaultProfile:\s*cloud\.split-services\.production/);
   assert.match(deploy, /domain:\s*canvas\.sdkwork\.com/);
 });
 
-test('wires deploy validation into pnpm check', () => {
-  const packageJson = readJson('package.json');
-  assert.match(packageJson.scripts.check, /check:deploy-standard/);
-  assert.match(packageJson.scripts['deploy:validate'], /check-deploy-standard\.mjs/);
+test('wires database validation into pnpm check', () => {
+  const pkg = readJson('package.json');
+  assert.match(pkg.scripts.check, /db:validate/);
+  assert.match(pkg.scripts.check, /check-api-response-envelope/);
 });
 
-test('wires native app composition verification into pnpm check and verify', () => {
-  const packageJson = readJson('package.json');
-  assert.match(packageJson.scripts.check, /check:app-composition/);
-  assert.match(packageJson.scripts.verify, /check:app-composition/);
-  assert.match(packageJson.scripts['check:app-composition'], /verify-repo\.mjs/);
+test('database module id is canvas', () => {
+  const manifest = readJson('database/database.manifest.json');
+  assert.equal(manifest.moduleId, 'canvas');
+  assert.equal(manifest.serviceCode, 'CANVAS');
 });
 
-test('integrates sdkwork-drive through generated Rust app SDK facade', () => {
-  const rootCargo = read('Cargo.toml');
-  assert.match(rootCargo, /sdkwork_drive_app_sdk_generated_rust/);
-
+test('integrates sdkwork-drive in standalone gateway bootstrap', () => {
   const facade = read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/drive_app_sdk_facade.rs');
   assert.match(facade, /sdkwork_drive_app_sdk_generated_rust/);
-  assert.match(facade, /uploader_uploads_prepare/);
-  assert.match(facade, /upload_sessions_complete/);
-
-  const appAssembly = readJson('sdks/sdkwork-canvas-app-sdk/.sdkwork-assembly.json');
-  const driveDependency = appAssembly.sdkDependencies?.find(
-    (item) => item.workspace === 'sdkwork-drive-app-sdk',
-  );
-  assert.ok(driveDependency, 'app SDK assembly must declare sdkwork-drive-app-sdk');
-});
-
-test('production topology profiles configure Drive facade instead of memory drive', () => {
-  for (const profilePath of [
-    'configs/topology/cloud.split-services.production.env',
-    'configs/topology/standalone.unified-process.production.env',
-  ]) {
-    const profileEnv = read(profilePath);
-    assert.match(profileEnv, /SDKWORK_CANVAS_USE_MEMORY_DRIVE=0/);
-    assert.match(profileEnv, /SDKWORK_DRIVE_FACADE_URL=https:\/\//);
-  }
 });

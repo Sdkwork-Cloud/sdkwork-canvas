@@ -1,0 +1,110 @@
+{
+  "templateTitle": "新增主题合集",
+  "automaticChaptersPrebuild": "自动生成子章节骨架",
+  "templateFolderBookTitleLabel": "合集书册名称 (Folder Book Title)",
+  "templatePrebuildDesc": "随同生成 {{count}} 篇配套骨架，您稍后可通过大纲方向盘完全上下调整。",
+  "selectCreativeArchetypeLabel": "选择创作预设分类 (8本经典大纲)",
+  "generateCollectionButton": "立即生成大纲",
+  "presets": {
+    "prd": {
+      "name": "产品研发大纲",
+      "description": "敏捷迭代与架构白皮书",
+      "defaultTitle": "《AI极简笔记协同系统 产品规范手册》",
+      "outlineContent": "# 《AI极简笔记系统》产品研发总纲\n\n> 📌 **顶级工程目录**：汇聚各期功能定义、接口约定及设计指标。\n> 点击合集大纲的 “新增子章节” 即可扩展开发里程碑。\n\n## 🎯 业务宗旨\n- **零噪专注**：全篇单栏，回归Markdown本源。\n- **瞬时查找**：搜索即时匹配，多维卡片按大纲顺序原子上下移动。",
+      "subChapters": [
+        {
+          "title": "第 1 章：核心技术栈与渲染生命周期",
+          "content": "## 第 1 章：核心技术栈与渲染生命周期\n\n### 1.1 技术底座\n- **核心框架**：React 18 + Vite + TypeScript\n- **样式处理**：Tailwind CSS (高像素密度现代布局规范)\n- **状态总控**：原子层 Context + 本地缓存"
+        },
+        {
+          "title": "第 2 章：多级目录与章节原子重组织",
+          "content": "## 第 2 章：多级目录与章节原子重组织\n\n### 2.1 创新点\n本系统摒弃了繁琐多级目录，采取 “分卷合集 -> 章节卡片” 的双层极简目录，支持原子上下移动索引。"
+        }
+      ]
+    },
+    "story": {
+      "name": "长篇连载小说",
+      "description": "创意世界观与连续叙事",
+      "defaultTitle": "《深空回响录：星哨哨站异闻录》",
+      "outlineContent": "# 《深空回响录》宏观世界设定大纲\n\n> “当古老星核释放出第一束低频电波时，整个银河系迎来了第三次无止境的代码冻结期。”\n\n## 🎭 核心设定\n- **主线故事**：一个边缘哨站的程序员在垃圾日志中破译出史前银河防线的存续指令。",
+      "subChapters": [
+        {
+          "title": "第一章：星哨三十七号的废弃日志流",
+          "content": "## 第一章：星哨三十七号的废弃日志流\n\n“三十七号哨站已经有整整两个恒星纪没有收到总部发放的信息点数了。”"
+        }
+      ]
+    },
+    "thesis": {
+      "name": "学术论文大纲",
+      "description": "文献综述与逻辑框架整理",
+      "defaultTitle": "《基于认知心流的前端极简编辑体验演进路径研究》",
+      "outlineContent": "# 🎓 毕业论文 / 学术研究总大纲\n\n## 🔬 核心研究方法 (Methodology)\n- **文献定量分析法**：比对各类编辑器对撰写心流干扰项的分布。\n- **控制实验法**：通过测量打断次数。",
+      "subChapters": [
+        {
+          "title": "导论：干扰项负荷对编辑心流的削减效应",
+          "content": "## 导论：干扰项负荷对编辑心流的削减效应\n\n### 1.1 研究背景\n弹窗、过度设计会造成严重的精力分散。"
+        }
+      ]
+    },
+    "wiki": {
+      "name": "技术知识库",
+      "description": "团队沉淀、避坑指南、Onboarding",
+      "defaultTitle": "《技术团队高质量 React/TypeScript 研发手册》",
+      "outlineContent": "# 📘 技术知识库 & 团队研发宪章\n\n## ⚠️ 终极原则\n- 见 any 扣 5 分，对依赖项处理不当扣 10 分。",
+      "subChapters": [
+        {
+          "title": "第一篇：Docker Compose 极速冷启动指南",
+          "content": "## 第一篇：Docker Compose 极速冷启动指南\n\n```bash\ndocker-compose up --build -d\n```"
+        }
+      ]
+    },
+    "weekly": {
+      "name": "项目周报与会议",
+      "description": "会议备忘、任务追踪、周度进度",
+      "defaultTitle": "《技术部 2026 年 Q2 核心演进会议纪要合集》",
+      "outlineContent": "# 📋 技术部 Q2 核心周报与会议聚合看板\n\n- [x] 完成侧边栏全局搜排功能的行内压缩设计",
+      "subChapters": [
+        {
+          "title": "第24周：行内高密度功能优化推进会议",
+          "content": "## 第24周：行内高密度功能优化推进会议\n\n- **决议**：默认隐藏搜寻条以节省垂直空间。"
+        }
+      ]
+    },
+    "health": {
+      "name": "身体管理与健身",
+      "description": "指标追踪、训练日程、周期复盘",
+      "defaultTitle": "《半程马拉松 16 周高能心肺训练日志》",
+      "outlineContent": "# 🏃 半程马拉松冲刺 16 周训练大本营\n\n🏁 **阶段目标**：半马破 100 分钟 (平均配速 4'44\")",
+      "subChapters": [
+        {
+          "title": "第一阶段：低心率 E跑 筑基（第1-4周）",
+          "content": "## 第一阶段：低心率 E跑 筑基\n\n每周课表包括 45 分钟有氧轻跑等。"
+        }
+      ]
+    },
+    "recipe": {
+      "name": "美食食谱与品酒评鉴",
+      "description": "风味秘籍、感官档案、比例清单",
+      "defaultTitle": "《经典意式烹饪与自然酒盲品记录簿》",
+      "outlineContent": "# 🍷 卡片式风味探寻手记\n\n## 🍯 调味底线\n- 尊重时令与火候，绝不添加过多防腐佐料。",
+      "subChapters": [
+        {
+          "title": "手记一：帕玛森干酪主导的碳烤牛排黑椒风味",
+          "content": "## 手记一：帕玛森干酪主导的碳烤牛排黑椒风味\n\n安格斯熟成肉配合极细起司。"
+        }
+      ]
+    },
+    "empty": {
+      "name": "空白大纲合集",
+      "description": "干干净净、纯自定义的空书册结构",
+      "defaultTitle": "《未命名自建大纲手稿》",
+      "outlineContent": "# 目录主册总纲\n\n可以在这里输入本合集的中心主旨。",
+      "subChapters": [
+        {
+          "title": "第 1 章：落笔开启您的第一卷子章节",
+          "content": "## 第 1 章：落笔开启您的第一卷子章节\n\n点击左侧即可撰写。"
+        }
+      ]
+    }
+  }
+}

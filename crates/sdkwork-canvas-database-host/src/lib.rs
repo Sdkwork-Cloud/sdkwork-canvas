@@ -6,12 +6,12 @@ use sdkwork_database_lifecycle::{lifecycle_options_from_env, LifecycleOrchestrat
 use sdkwork_database_spi::{DatabaseAssetProvider, DatabaseManifest, DefaultDatabaseModule};
 use sdkwork_database_sqlx::{create_pool_from_config, DatabasePool};
 
-pub struct NotesDatabaseHost {
+pub struct CanvasDatabaseHost {
     pool: DatabasePool,
     module: Arc<DefaultDatabaseModule>,
 }
 
-impl NotesDatabaseHost {
+impl CanvasDatabaseHost {
     pub fn pool(&self) -> &DatabasePool {
         &self.pool
     }
@@ -21,7 +21,7 @@ impl NotesDatabaseHost {
     }
 }
 
-pub async fn bootstrap_canvas_database(pool: DatabasePool) -> Result<NotesDatabaseHost, String> {
+pub async fn bootstrap_canvas_database(pool: DatabasePool) -> Result<CanvasDatabaseHost, String> {
     let app_root = resolve_app_root();
     let module = Arc::new(
         DefaultDatabaseModule::from_app_root(&app_root)
@@ -45,10 +45,10 @@ pub async fn bootstrap_canvas_database(pool: DatabasePool) -> Result<NotesDataba
             .map_err(|error| format!("Canvas Database migrate failed: {error}"))?;
     }
 
-    Ok(NotesDatabaseHost { pool, module })
+    Ok(CanvasDatabaseHost { pool, module })
 }
 
-pub async fn bootstrap_canvas_database_from_env() -> Result<NotesDatabaseHost, String> {
+pub async fn bootstrap_canvas_database_from_env() -> Result<CanvasDatabaseHost, String> {
     let _ = dotenvy::dotenv();
     let config = DatabaseConfig::from_env("CANVAS")
         .map_err(|error| format!("read Canvas Database config failed: {error}"))?;

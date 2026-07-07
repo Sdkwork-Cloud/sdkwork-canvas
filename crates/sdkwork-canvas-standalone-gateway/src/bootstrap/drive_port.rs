@@ -34,13 +34,13 @@ pub(crate) fn select_drive_port(input: DrivePortSelectionInput) -> DrivePortSele
 }
 
 #[derive(Clone)]
-pub enum NotesApiDrivePort {
+pub enum CanvasApiDrivePort {
     Memory(MemoryDrivePageContentPort),
     Facade(SdkDriveAppFacadePageContentPort),
     Unconfigured(DevDrivePageContentPort),
 }
 
-impl NotesApiDrivePort {
+impl CanvasApiDrivePort {
     pub fn from_env() -> Self {
         let use_memory_drive = std::env::var("SDKWORK_CANVAS_USE_MEMORY_DRIVE")
             .ok()
@@ -73,13 +73,13 @@ fn parse_truthy(value: &str) -> bool {
 pub struct DevDrivePageContentPort;
 
 #[async_trait::async_trait]
-impl DrivePageContentPort for NotesApiDrivePort {
+impl DrivePageContentPort for CanvasApiDrivePort {
     async fn create_page_content(
         &self,
         command: sdkwork_canvas_pages_service::ports::CreateDrivePageContentCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
         match self {
             Self::Memory(port) => port.create_page_content(command).await,
@@ -93,7 +93,7 @@ impl DrivePageContentPort for NotesApiDrivePort {
         command: sdkwork_canvas_pages_service::ports::ReadDrivePageContentCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
         match self {
             Self::Memory(port) => port.read_page_content(command).await,
@@ -107,7 +107,7 @@ impl DrivePageContentPort for NotesApiDrivePort {
         command: sdkwork_canvas_pages_service::ports::UpdateDrivePageContentCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
         match self {
             Self::Memory(port) => port.update_page_content(command).await,
@@ -121,7 +121,7 @@ impl DrivePageContentPort for NotesApiDrivePort {
         command: sdkwork_canvas_pages_service::ports::ListDrivePageContentVersionsCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DriveVersionPage,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
         match self {
             Self::Memory(port) => port.list_page_content_versions(command).await,
@@ -135,7 +135,7 @@ impl DrivePageContentPort for NotesApiDrivePort {
         command: sdkwork_canvas_pages_service::ports::RestoreDrivePageContentVersionCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
         match self {
             Self::Memory(port) => port.restore_page_content_version(command).await,
@@ -152,9 +152,9 @@ impl DrivePageContentPort for DevDrivePageContentPort {
         _command: sdkwork_canvas_pages_service::ports::CreateDrivePageContentCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
-        Err(sdkwork_canvas_pages_service::error::NotesProductError::Internal(
+        Err(sdkwork_canvas_pages_service::error::CanvasProductError::Internal(
             "Drive integration is not configured; set SDKWORK_DRIVE_FACADE_URL, leave SDKWORK_CANVAS_USE_MEMORY_DRIVE unset for local memory Drive, or set SDKWORK_CANVAS_USE_MEMORY_DRIVE=1"
                 .to_string(),
         ))
@@ -165,9 +165,9 @@ impl DrivePageContentPort for DevDrivePageContentPort {
         _command: sdkwork_canvas_pages_service::ports::ReadDrivePageContentCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
-        Err(sdkwork_canvas_pages_service::error::NotesProductError::Internal(
+        Err(sdkwork_canvas_pages_service::error::CanvasProductError::Internal(
             "Drive integration is not configured".to_string(),
         ))
     }
@@ -177,9 +177,9 @@ impl DrivePageContentPort for DevDrivePageContentPort {
         _command: sdkwork_canvas_pages_service::ports::UpdateDrivePageContentCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
-        Err(sdkwork_canvas_pages_service::error::NotesProductError::Internal(
+        Err(sdkwork_canvas_pages_service::error::CanvasProductError::Internal(
             "Drive integration is not configured".to_string(),
         ))
     }
@@ -189,9 +189,9 @@ impl DrivePageContentPort for DevDrivePageContentPort {
         _command: sdkwork_canvas_pages_service::ports::ListDrivePageContentVersionsCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DriveVersionPage,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
-        Err(sdkwork_canvas_pages_service::error::NotesProductError::Internal(
+        Err(sdkwork_canvas_pages_service::error::CanvasProductError::Internal(
             "Drive integration is not configured".to_string(),
         ))
     }
@@ -201,9 +201,9 @@ impl DrivePageContentPort for DevDrivePageContentPort {
         _command: sdkwork_canvas_pages_service::ports::RestoreDrivePageContentVersionCommand,
     ) -> Result<
         sdkwork_canvas_pages_service::domain::DrivePageContentSnapshot,
-        sdkwork_canvas_pages_service::error::NotesProductError,
+        sdkwork_canvas_pages_service::error::CanvasProductError,
     > {
-        Err(sdkwork_canvas_pages_service::error::NotesProductError::Internal(
+        Err(sdkwork_canvas_pages_service::error::CanvasProductError::Internal(
             "Drive integration is not configured".to_string(),
         ))
     }

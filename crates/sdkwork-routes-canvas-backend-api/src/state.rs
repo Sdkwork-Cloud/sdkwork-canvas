@@ -1,21 +1,21 @@
-use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, NotesRepository};
-use sdkwork_canvas_pages_service::service::NotesService;
+use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, CanvasRepository};
+use sdkwork_canvas_pages_service::service::CanvasPagesService;
 
 #[derive(Clone)]
-pub struct NotesBackendState<R, D>
+pub struct CanvasBackendState<R, D>
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
-    pub service: NotesService<R, D>,
+    pub service: CanvasPagesService<R, D>,
 }
 
-impl<R, D> NotesBackendState<R, D>
+impl<R, D> CanvasBackendState<R, D>
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
-    pub fn new(service: NotesService<R, D>) -> Self {
+    pub fn new(service: CanvasPagesService<R, D>) -> Self {
         Self { service }
     }
 }

@@ -1,9 +1,5 @@
-local/
-tmp/
-cache/
-secrets/
-*.local.json
-*.local.toml
-*.local.yaml
-*.local.yml
+# Generator-owned artifacts
+sdkwork-generator-*.json
 
+# Runtime-owned artifacts
+runtime-state.json

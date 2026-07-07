@@ -1,7 +1,7 @@
 use axum::http::{HeaderName, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
 use axum::Json;
-use sdkwork_canvas_pages_service::error::NotesProductError;
+use sdkwork_canvas_pages_service::error::CanvasProductError;
 use sdkwork_utils_rust::{
     legacy_wire_result_code, SdkWorkApiResponse, SdkWorkResultCode,
 };
@@ -121,13 +121,13 @@ impl ApiProblem {
     }
 }
 
-pub fn map_product_error(error: NotesProductError) -> ApiProblem {
+pub fn map_product_error(error: CanvasProductError) -> ApiProblem {
     match error {
-        NotesProductError::Validation(detail) => ApiProblem::bad_request(detail),
-        NotesProductError::Conflict(detail) => ApiProblem::conflict(detail),
-        NotesProductError::NotFound(detail) => ApiProblem::not_found(detail),
-        NotesProductError::PermissionDenied(detail) => ApiProblem::forbidden(detail),
-        NotesProductError::Internal(_) => {
+        CanvasProductError::Validation(detail) => ApiProblem::bad_request(detail),
+        CanvasProductError::Conflict(detail) => ApiProblem::conflict(detail),
+        CanvasProductError::NotFound(detail) => ApiProblem::not_found(detail),
+        CanvasProductError::PermissionDenied(detail) => ApiProblem::forbidden(detail),
+        CanvasProductError::Internal(_) => {
             ApiProblem::internal("An unexpected error occurred".to_string())
         }
     }

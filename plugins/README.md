@@ -1,3 +1,10 @@
-# plugins/
+# Plugins
 
-Repository-local SDKWork plugins per `sdkwork-specs/SDKWORK_WORKSPACE_SPEC.md`. See also [../.sdkwork/plugins/README.md](../.sdkwork/plugins/README.md).
+Runtime plugins and host adapters for the `sdkwork-canvas` repository.
+
+Authority: `../sdkwork-specs/APPLICATION_SPEC.md`, `../sdkwork-specs/APP_SDK_INTEGRATION_SPEC.md`.
+
+## Rules
+
+- Plugins extend application behavior without modifying core contracts.
+- Host adapters follow `APP_SDK_INTEGRATION_SPEC.md` for cross-architecture integration.

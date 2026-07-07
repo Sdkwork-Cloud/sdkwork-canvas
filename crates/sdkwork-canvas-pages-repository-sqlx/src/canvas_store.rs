@@ -1,30 +1,30 @@
 use sdkwork_canvas_pages_service::domain::{
     AiFeedback, AiJob, AiJobSource, AiSuggestion, DrivePageContentSnapshot, NewAiFeedback,
-    NewAiJob, NewAiSuggestion, NewPage, NewWorkspace, NotesActorContext, Page, PageKind,
+    NewAiJob, NewAiSuggestion, NewPage, NewWorkspace, CanvasActorContext, Page, PageKind,
     PageMetadataPatch, Workspace,
 };
-use sdkwork_canvas_pages_service::error::{internal_sql_error, NotesProductError};
-use sdkwork_canvas_pages_service::ports::NotesRepository;
+use sdkwork_canvas_pages_service::error::{internal_sql_error, CanvasProductError};
+use sdkwork_canvas_pages_service::ports::CanvasRepository;
 use async_trait::async_trait;
 use sqlx::{AnyPool, Row};
 
 #[derive(Clone)]
-pub struct SqlNotesStore {
+pub struct SqlCanvasStore {
     pool: AnyPool,
 }
 
-impl SqlNotesStore {
+impl SqlCanvasStore {
     pub fn new(pool: AnyPool) -> Self {
         Self { pool }
     }
 }
 
 #[async_trait]
-impl NotesRepository for SqlNotesStore {
+impl CanvasRepository for SqlCanvasStore {
     async fn insert_workspace(
         &self,
         workspace: NewWorkspace,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         sqlx::query(
             "INSERT INTO canvas_workspace (
                 id, tenant_id, organization_id, owner_subject_type, owner_subject_id,
@@ -57,9 +57,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn find_workspace(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         let row = sqlx::query(
             "SELECT id, tenant_id, organization_id, owner_subject_type, owner_subject_id,
                     name, description, drive_space_id, default_page_content_type,
@@ -81,15 +81,15 @@ impl NotesRepository for SqlNotesStore {
 
         row.as_ref()
             .map(map_workspace)
-            .ok_or_else(|| NotesProductError::NotFound("workspace not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("workspace not found".to_string()))
     }
 
     async fn list_workspaces(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page: i64,
         page_size: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         let limit = page_size + 1;
         let offset = (page - 1) * page_size;
         let rows = sqlx::query(
@@ -115,7 +115,7 @@ impl NotesRepository for SqlNotesStore {
         Ok(rows.iter().map(map_workspace).collect())
     }
 
-    async fn insert_page(&self, page: NewPage) -> Result<Page, NotesProductError> {
+    async fn insert_page(&self, page: NewPage) -> Result<Page, CanvasProductError> {
         sqlx::query(
             "INSERT INTO canvas_page (
                 id, tenant_id, organization_id, workspace_id, title, page_kind,
@@ -157,7 +157,7 @@ impl NotesRepository for SqlNotesStore {
         Ok(page)
     }
 
-    async fn page_id_is_reserved(&self, page_id: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, page_id: &str) -> Result<bool, CanvasProductError> {
         let exists: Option<String> = sqlx::query_scalar(
             "SELECT id
              FROM canvas_page
@@ -174,9 +174,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn find_page(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         let row = sqlx::query(
             "SELECT id, tenant_id, organization_id, workspace_id, title, page_kind,
                     parent_page_id, folder_drive_node_id, drive_space_id, drive_node_id,
@@ -202,17 +202,17 @@ impl NotesRepository for SqlNotesStore {
         row.as_ref()
             .map(map_page)
             .transpose()?
-            .ok_or_else(|| NotesProductError::NotFound("page not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("page not found".to_string()))
     }
 
     async fn list_pages(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
         page: i64,
         page_size: i64,
         q: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         let limit = page_size + 1;
         let offset = (page - 1) * page_size;
         let like_query = q.map(like_contains_pattern);
@@ -250,10 +250,10 @@ impl NotesRepository for SqlNotesStore {
 
     async fn list_root_pages(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
         limit: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         let rows = sqlx::query(
             "SELECT id, tenant_id, organization_id, workspace_id, title, page_kind,
                     parent_page_id, folder_drive_node_id, drive_space_id, drive_node_id,
@@ -285,12 +285,12 @@ impl NotesRepository for SqlNotesStore {
 
     async fn search_pages(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: Option<&str>,
         q: Option<&str>,
         page: i64,
         page_size: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         let limit = page_size + 1;
         let offset = (page - 1) * page_size;
         let like_query = q.map(like_contains_pattern);
@@ -382,11 +382,11 @@ impl NotesRepository for SqlNotesStore {
 
     async fn update_page_metadata(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
         patch: &PageMetadataPatch,
         expected_version: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         let affected = if let Some(parent_page_id) = &patch.parent_page_id {
             sqlx::query(
                 "UPDATE canvas_page
@@ -449,11 +449,11 @@ impl NotesRepository for SqlNotesStore {
 
         if affected == 0 {
             if expected_version.is_some() && self.find_page(context, page_id).await.is_ok() {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page version has changed".to_string(),
                 ));
             }
-            return Err(NotesProductError::NotFound("page not found".to_string()));
+            return Err(CanvasProductError::NotFound("page not found".to_string()));
         }
 
         let page = self.find_page(context, page_id).await?;
@@ -463,9 +463,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn delete_page(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         let affected = sqlx::query(
             "UPDATE canvas_page
              SET lifecycle_status='deleted',
@@ -488,7 +488,7 @@ impl NotesRepository for SqlNotesStore {
         .rows_affected();
 
         if affected == 0 {
-            return Err(NotesProductError::NotFound("page not found".to_string()));
+            return Err(CanvasProductError::NotFound("page not found".to_string()));
         }
 
         sqlx::query(
@@ -509,11 +509,11 @@ impl NotesRepository for SqlNotesStore {
 
     async fn update_page_drive_snapshot(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
         snapshot: &DrivePageContentSnapshot,
         expected_current_drive_version_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         let affected = sqlx::query(
             "UPDATE canvas_page
              SET drive_space_id=$1,
@@ -559,11 +559,11 @@ impl NotesRepository for SqlNotesStore {
 
         if affected == 0 {
             if self.find_page(context, page_id).await.is_ok() {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
-            return Err(NotesProductError::NotFound("page not found".to_string()));
+            return Err(CanvasProductError::NotFound("page not found".to_string()));
         }
 
         let page = self.find_page(context, page_id).await?;
@@ -573,9 +573,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         idempotency_key: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         let row = sqlx::query(
             "SELECT id
              FROM canvas_ai_job
@@ -603,10 +603,10 @@ impl NotesRepository for SqlNotesStore {
         self.find_ai_job(context, &ai_job_id).await.map(Some)
     }
 
-    async fn insert_ai_job(&self, job: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, job: NewAiJob) -> Result<AiJob, CanvasProductError> {
         let context_policy_snapshot =
             serde_json::to_string(&job.context_policy_snapshot).map_err(|error| {
-                NotesProductError::Internal(format!(
+                CanvasProductError::Internal(format!(
                     "serialize canvas_ai_job context policy failed: {error}"
                 ))
             })?;
@@ -677,16 +677,16 @@ impl NotesRepository for SqlNotesStore {
 
         self.find_ai_job_by_idempotency_key(&job.context, &job.idempotency_key)
             .await?
-            .ok_or_else(|| NotesProductError::Internal("inserted AI job not found".to_string()))
+            .ok_or_else(|| CanvasProductError::Internal("inserted AI job not found".to_string()))
     }
 
     async fn list_ai_jobs(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: Option<&str>,
         page: i64,
         page_size: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         let limit = page_size + 1;
         let offset = (page - 1) * page_size;
         let rows = if let Some(workspace_id) = workspace_id {
@@ -763,9 +763,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn find_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let row = sqlx::query(
             "SELECT j.id, j.tenant_id, j.organization_id, j.workspace_id, j.job_type,
                     j.target_type, j.target_id, j.status, j.result_json,
@@ -801,25 +801,25 @@ impl NotesRepository for SqlNotesStore {
         row.as_ref()
             .map(map_ai_job)
             .transpose()?
-            .ok_or_else(|| NotesProductError::NotFound("AI job not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("AI job not found".to_string()))
     }
 
     async fn cancel_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let current = self.find_ai_job(context, ai_job_id).await?;
         match current.status.as_str() {
             "canceled" => return Ok(current),
             "queued" | "running" => {}
             "succeeded" | "failed" => {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI job is already terminal".to_string(),
                 ));
             }
             other => {
-                return Err(NotesProductError::Internal(format!(
+                return Err(CanvasProductError::Internal(format!(
                     "invalid persisted AI job status: {other}"
                 )));
             }
@@ -851,22 +851,22 @@ impl NotesRepository for SqlNotesStore {
             match current.status.as_str() {
                 "canceled" => return Ok(current),
                 "running" => {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI job is already running".to_string(),
                     ));
                 }
                 "succeeded" | "failed" => {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI job is already terminal".to_string(),
                     ));
                 }
                 "queued" => {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI job could not be canceled".to_string(),
                     ));
                 }
                 other => {
-                    return Err(NotesProductError::Internal(format!(
+                    return Err(CanvasProductError::Internal(format!(
                         "invalid persisted AI job status: {other}"
                     )));
                 }
@@ -878,24 +878,24 @@ impl NotesRepository for SqlNotesStore {
 
     async fn claim_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let current = self.find_ai_job(context, ai_job_id).await?;
         match current.status.as_str() {
             "queued" => {}
             "running" => {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI job is already running".to_string(),
                 ));
             }
             "succeeded" | "failed" | "canceled" => {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI job is already terminal".to_string(),
                 ));
             }
             other => {
-                return Err(NotesProductError::Internal(format!(
+                return Err(CanvasProductError::Internal(format!(
                     "invalid persisted AI job status: {other}"
                 )));
             }
@@ -926,22 +926,22 @@ impl NotesRepository for SqlNotesStore {
             let current = self.find_ai_job(context, ai_job_id).await?;
             match current.status.as_str() {
                 "running" => {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI job is already running".to_string(),
                     ));
                 }
                 "succeeded" | "failed" | "canceled" => {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI job is already terminal".to_string(),
                     ));
                 }
                 "queued" => {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI job could not be claimed".to_string(),
                     ));
                 }
                 other => {
-                    return Err(NotesProductError::Internal(format!(
+                    return Err(CanvasProductError::Internal(format!(
                         "invalid persisted AI job status: {other}"
                     )));
                 }
@@ -953,9 +953,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn list_ai_job_sources(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         let rows = sqlx::query(
             "SELECT id, tenant_id, organization_id, workspace_id, job_id, source_type,
                     source_id, drive_node_id, drive_version_id, drive_version_no,
@@ -978,13 +978,13 @@ impl NotesRepository for SqlNotesStore {
 
     async fn complete_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
         suggestions: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let current = self.find_ai_job(context, ai_job_id).await?;
         if current.status != "running" {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "AI job must be running before completion".to_string(),
             ));
         }
@@ -995,7 +995,7 @@ impl NotesRepository for SqlNotesStore {
 
         for suggestion in &suggestions {
             let payload_json = serde_json::to_string(&suggestion.payload).map_err(|error| {
-                NotesProductError::Internal(format!(
+                CanvasProductError::Internal(format!(
                     "serialize canvas_ai_suggestion payload failed: {error}"
                 ))
             })?;
@@ -1032,7 +1032,7 @@ impl NotesRepository for SqlNotesStore {
             "completedBy": context.operator_id,
         });
         let result_json = serde_json::to_string(&result_json).map_err(|error| {
-            NotesProductError::Internal(format!("serialize canvas_ai_job result failed: {error}"))
+            CanvasProductError::Internal(format!("serialize canvas_ai_job result failed: {error}"))
         })?;
         let affected = sqlx::query(
             "UPDATE canvas_ai_job
@@ -1058,7 +1058,7 @@ impl NotesRepository for SqlNotesStore {
         .rows_affected();
 
         if affected == 0 {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "AI job must be running before completion".to_string(),
             ));
         }
@@ -1072,17 +1072,17 @@ impl NotesRepository for SqlNotesStore {
 
     async fn fail_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
         error_code: &str,
         error_message: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let current = self.find_ai_job(context, ai_job_id).await?;
         if current.status == "failed" {
             return Ok(current);
         }
         if current.status != "running" {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "AI job must be running before failure reporting".to_string(),
             ));
         }
@@ -1113,7 +1113,7 @@ impl NotesRepository for SqlNotesStore {
         .rows_affected();
 
         if affected == 0 {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "AI job must be running before failure reporting".to_string(),
             ));
         }
@@ -1123,11 +1123,11 @@ impl NotesRepository for SqlNotesStore {
 
     async fn list_page_ai_suggestions(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
         page: i64,
         page_size: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         let limit = page_size + 1;
         let offset = (page - 1) * page_size;
         let rows = sqlx::query(
@@ -1156,9 +1156,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn find_ai_suggestion(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_suggestion_id: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         let row = sqlx::query(
             "SELECT id, tenant_id, organization_id, workspace_id, page_id, ai_job_id,
                     suggestion_type, status, source_drive_node_id, source_drive_version_id,
@@ -1180,15 +1180,15 @@ impl NotesRepository for SqlNotesStore {
         row.as_ref()
             .map(map_ai_suggestion)
             .transpose()?
-            .ok_or_else(|| NotesProductError::NotFound("AI suggestion not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("AI suggestion not found".to_string()))
     }
 
     async fn decide_ai_suggestion(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_suggestion_id: &str,
         status: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         let affected = sqlx::query(
             "UPDATE canvas_ai_suggestion
              SET status=$1,
@@ -1220,12 +1220,12 @@ impl NotesRepository for SqlNotesStore {
 
     async fn apply_ai_suggestion(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_suggestion_id: &str,
         page_id: &str,
         snapshot: &DrivePageContentSnapshot,
         expected_current_drive_version_id: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         let mut transaction = self.pool.begin().await.map_err(internal_sql_error(
             "begin apply canvas_ai_suggestion transaction failed",
         ))?;
@@ -1294,11 +1294,11 @@ impl NotesRepository for SqlNotesStore {
                 "apply canvas_ai_suggestion page conflict check failed",
             ))?;
             if page_exists.is_some() {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
-            return Err(NotesProductError::NotFound("page not found".to_string()));
+            return Err(CanvasProductError::NotFound("page not found".to_string()));
         }
 
         let suggestion_affected = sqlx::query(
@@ -1341,11 +1341,11 @@ impl NotesRepository for SqlNotesStore {
                 "apply canvas_ai_suggestion conflict check failed",
             ))?;
             if suggestion_exists.is_some() {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI suggestion status changed before apply completed".to_string(),
                 ));
             }
-            return Err(NotesProductError::NotFound(
+            return Err(CanvasProductError::NotFound(
                 "AI suggestion not found".to_string(),
             ));
         }
@@ -1359,9 +1359,9 @@ impl NotesRepository for SqlNotesStore {
 
     async fn find_ai_feedback(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_feedback_id: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         let row = sqlx::query(
             "SELECT id, tenant_id, organization_id, workspace_id, job_id, suggestion_id,
                     feedback_type, feedback_text, created_by, created_at
@@ -1380,13 +1380,13 @@ impl NotesRepository for SqlNotesStore {
 
         row.as_ref()
             .map(map_ai_feedback)
-            .ok_or_else(|| NotesProductError::NotFound("AI feedback not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("AI feedback not found".to_string()))
     }
 
     async fn insert_ai_feedback(
         &self,
         feedback: NewAiFeedback,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         sqlx::query(
             "INSERT INTO canvas_ai_feedback (
                 id, tenant_id, organization_id, workspace_id, job_id, suggestion_id,
@@ -1413,11 +1413,11 @@ impl NotesRepository for SqlNotesStore {
 
     async fn list_ai_suggestion_feedback(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_suggestion_id: &str,
         page: i64,
         page_size: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         let limit = page_size + 1;
         let offset = (page - 1) * page_size;
         let rows = sqlx::query(
@@ -1443,16 +1443,16 @@ impl NotesRepository for SqlNotesStore {
     }
 }
 
-fn map_insert_error(context: &'static str) -> impl Fn(sqlx::Error) -> NotesProductError {
+fn map_insert_error(context: &'static str) -> impl Fn(sqlx::Error) -> CanvasProductError {
     move |error| match &error {
         sqlx::Error::Database(database_error)
             if database_error
                 .message()
                 .contains("UNIQUE constraint failed") =>
         {
-            NotesProductError::Conflict(context.to_string())
+            CanvasProductError::Conflict(context.to_string())
         }
-        _ => NotesProductError::Internal(format!("{context}: {error}")),
+        _ => CanvasProductError::Internal(format!("{context}: {error}")),
     }
 }
 
@@ -1494,10 +1494,10 @@ fn map_workspace(row: &sqlx::any::AnyRow) -> Workspace {
     }
 }
 
-fn map_page(row: &sqlx::any::AnyRow) -> Result<Page, NotesProductError> {
+fn map_page(row: &sqlx::any::AnyRow) -> Result<Page, CanvasProductError> {
     let page_kind: String = row.get("page_kind");
     let page_kind = PageKind::try_from_str(&page_kind).ok_or_else(|| {
-        NotesProductError::Internal(format!("invalid persisted page_kind: {page_kind}"))
+        CanvasProductError::Internal(format!("invalid persisted page_kind: {page_kind}"))
     })?;
     let favorite: i64 = row.get("favorite");
 
@@ -1537,13 +1537,13 @@ fn map_page(row: &sqlx::any::AnyRow) -> Result<Page, NotesProductError> {
     })
 }
 
-fn map_ai_job(row: &sqlx::any::AnyRow) -> Result<AiJob, NotesProductError> {
+fn map_ai_job(row: &sqlx::any::AnyRow) -> Result<AiJob, CanvasProductError> {
     let result_json: Option<String> = row.get("result_json");
     let result = result_json
         .as_deref()
         .map(serde_json::from_str)
         .transpose()
-        .map_err(|error| NotesProductError::Internal(format!("invalid result_json: {error}")))?;
+        .map_err(|error| CanvasProductError::Internal(format!("invalid result_json: {error}")))?;
 
     Ok(AiJob {
         id: row.get("id"),
@@ -1581,10 +1581,10 @@ fn map_ai_job_source(row: &sqlx::any::AnyRow) -> AiJobSource {
     }
 }
 
-fn map_ai_suggestion(row: &sqlx::any::AnyRow) -> Result<AiSuggestion, NotesProductError> {
+fn map_ai_suggestion(row: &sqlx::any::AnyRow) -> Result<AiSuggestion, CanvasProductError> {
     let payload_json: String = row.get("payload_json");
     let payload = serde_json::from_str(&payload_json).map_err(|error| {
-        NotesProductError::Internal(format!("invalid canvas_ai_suggestion payload_json: {error}"))
+        CanvasProductError::Internal(format!("invalid canvas_ai_suggestion payload_json: {error}"))
     })?;
 
     Ok(AiSuggestion {
@@ -1605,8 +1605,8 @@ fn map_ai_suggestion(row: &sqlx::any::AnyRow) -> Result<AiSuggestion, NotesProdu
     })
 }
 
-impl SqlNotesStore {
-    async fn upsert_page_search_projection(&self, page: &Page) -> Result<(), NotesProductError> {
+impl SqlCanvasStore {
+    async fn upsert_page_search_projection(&self, page: &Page) -> Result<(), CanvasProductError> {
         let projection_id = format!(
             "search-projection-{}-{}",
             page.id, page.current_drive_version_id

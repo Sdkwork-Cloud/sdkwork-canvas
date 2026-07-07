@@ -1,10 +1,16 @@
 # Services
 
-This directory is reserved per the SDKWork root dictionary. Canvas product/service crates live under [../crates/](../crates/) instead:
+Runnable Rust service processes for the `sdkwork-canvas` repository.
 
-| Crate | Role |
-| --- | --- |
-| `sdkwork-canvas-pages-service` | Canvas domain service and Drive content port |
-| `sdkwork-canvas-standalone-gateway` | Runnable HTTP gateway binary |
+Authority: `../sdkwork-specs/RUST_CODE_SPEC.md`.
 
-Do not add executable service logic here; use `crates/` per `APPLICATION_SPEC.md`.
+## Active Services
+
+- `sdkwork-canvas-api-server/`: HTTP API server process (`sdkwork-<application-code>-api-server`).
+- `sdkwork-canvas-standalone-gateway/`: standalone application gateway (`sdkwork-<application-code>-standalone-gateway`).
+
+## Rules
+
+- Runnable HTTP servers use `sdkwork-<application-code>-api-server`.
+- Standalone application gateways use `sdkwork-<application-code>-standalone-gateway`.
+- Cloud application gateways use `sdkwork-<application-code>-cloud-gateway` (when cloud profile is supported).

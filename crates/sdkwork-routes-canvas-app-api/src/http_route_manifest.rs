@@ -23,13 +23,13 @@ const HTTP_ROUTES: &[HttpRoute] = &[
     ),
     HttpRoute::dual_token(
         HttpMethod::Get,
-        "/app/v3/api/canvas",
+        "/app/v3/api/canvas/workspaces/{workspace_id}/boards",
         "canvas",
         "pages.list",
     ),
     HttpRoute::dual_token(
         HttpMethod::Post,
-        "/app/v3/api/canvas",
+        "/app/v3/api/canvas/workspaces/{workspace_id}/boards",
         "canvas",
         "pages.create",
     ),

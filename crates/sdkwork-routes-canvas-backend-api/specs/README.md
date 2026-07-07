@@ -12,6 +12,6 @@ Current scope:
 
 Boundary:
 
-- Handlers decode backend HTTP DTOs and delegate to `SDKWORK_CANVAS_pages_service::service::NotesService`.
+- Handlers decode backend HTTP DTOs and delegate to `SDKWORK_CANVAS_pages_service::service::CanvasPagesService`.
 - AI execution, provider calls, Drive content reads/writes, and Drive lifecycle ownership are out of scope.
 - Avoid `/canvas/canvas`, `canvas_note`, `canvas_note_revision`, and Drive-owned storage lifecycle APIs.

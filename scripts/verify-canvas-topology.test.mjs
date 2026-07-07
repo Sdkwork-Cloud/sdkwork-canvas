@@ -29,7 +29,7 @@ test('declares v2 topology spec and profile env files for sdkwork-canvas', async
   assert.equal(await exists('specs/topology.spec.json'), true);
   assert.equal(await exists('scripts/lib/canvas-topology.mjs'), true);
   assert.equal(await exists('scripts/canvas-dev.mjs'), true);
-  assert.equal(await exists('docs/topology-standard.md'), true);
+  assert.equal(await exists('configs/topology/README.md'), true);
 
   const spec = await readJson('specs/topology.spec.json');
   assert.equal(spec.schemaVersion, 2);
@@ -57,9 +57,8 @@ test('declares v2 topology spec and profile env files for sdkwork-canvas', async
 
 test('root package.json wires @sdkwork/app-topology and standard dev scripts', async () => {
   const packageJson = await readJson('package.json');
-  assert.equal(packageJson.dependencies['@sdkwork/app-topology'], 'file:../sdkwork-app-topology');
-  assert.match(packageJson.scripts.dev, /scripts\/canvas-dev\.mjs/);
-  assert.match(packageJson.scripts['dev:browser'], /scripts\/canvas-dev\.mjs/);
+  assert.match(packageJson.dependencies['@sdkwork/app-topology'], /workspace:\*|file:\.\.\/sdkwork-app-topology/);
+  assert.match(packageJson.scripts['dev:browser:postgres:unified-process:standalone'], /scripts\/canvas-dev\.mjs/);
   assert.match(packageJson.scripts['topology:validate'], /sdkwork-topology\.mjs validate/);
 });
 
@@ -113,7 +112,7 @@ test('canvas standalone-gateway requires topology bind env without hardcoded fal
 
 test('gateway cloud bundle script references topology packaging configs', async () => {
   const bundleScript = await read('scripts/gateway-cloud-bundle.mjs');
-  assert.match(bundleScript, /canvas_CLOUD_GATEWAY_CONFIGS/);
+  assert.match(bundleScript, /CANVAS_CLOUD_GATEWAY_CONFIGS/);
   assert.match(bundleScript, /sdkwork-canvas-api-gateway-config-/);
   assert.doesNotMatch(bundleScript, /bridgeLegacyServiceEnv/);
 });

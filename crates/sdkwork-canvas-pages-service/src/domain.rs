@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct NotesActorContext {
+pub struct CanvasActorContext {
     pub tenant_id: String,
     pub organization_id: String,
     pub operator_id: String,
@@ -313,7 +313,7 @@ pub struct DrivePageContentSnapshot {
 #[derive(Debug, Clone)]
 pub struct CreateWorkspaceCommand {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub owner_subject_type: String,
     pub owner_subject_id: String,
     pub name: String,
@@ -327,7 +327,7 @@ pub struct CreateWorkspaceCommand {
 #[derive(Debug, Clone)]
 pub struct CreatePageCommand {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub title: String,
     pub page_kind: PageKind,
@@ -341,7 +341,7 @@ pub struct CreatePageCommand {
 
 #[derive(Debug, Clone)]
 pub struct UpdatePageContentCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page_id: String,
     pub content: Value,
     pub content_type: Option<String>,
@@ -353,7 +353,7 @@ pub struct UpdatePageContentCommand {
 
 #[derive(Debug, Clone)]
 pub struct RestorePageVersionCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page_id: String,
     pub drive_version_id: String,
     pub expected_current_drive_version_id: Option<String>,
@@ -361,14 +361,14 @@ pub struct RestorePageVersionCommand {
 
 #[derive(Debug, Clone)]
 pub struct ListWorkspacesQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page: i64,
     pub page_size: i64,
 }
 
 #[derive(Debug, Clone)]
 pub struct ListPagesQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub page: i64,
     pub page_size: i64,
@@ -377,7 +377,7 @@ pub struct ListPagesQuery {
 
 #[derive(Debug, Clone)]
 pub struct ListPageVersionsQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page_id: String,
     pub page: i64,
     pub page_size: i64,
@@ -385,7 +385,7 @@ pub struct ListPageVersionsQuery {
 
 #[derive(Debug, Clone)]
 pub struct SearchQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: Option<String>,
     pub q: Option<String>,
     pub page: i64,
@@ -394,7 +394,7 @@ pub struct SearchQuery {
 
 #[derive(Debug, Clone)]
 pub struct ListAiJobsQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: Option<String>,
     pub page: i64,
     pub page_size: i64,
@@ -402,7 +402,7 @@ pub struct ListAiJobsQuery {
 
 #[derive(Debug, Clone)]
 pub struct ListPageAiSuggestionsQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page_id: String,
     pub page: i64,
     pub page_size: i64,
@@ -410,7 +410,7 @@ pub struct ListPageAiSuggestionsQuery {
 
 #[derive(Debug, Clone)]
 pub struct ListAiSuggestionFeedbackQuery {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_suggestion_id: String,
     pub page: i64,
     pub page_size: i64,
@@ -418,19 +418,19 @@ pub struct ListAiSuggestionFeedbackQuery {
 
 #[derive(Debug, Clone)]
 pub struct AcceptAiSuggestionCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_suggestion_id: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct RejectAiSuggestionCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_suggestion_id: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct ApplyAiSuggestionCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_suggestion_id: String,
     pub expected_drive_version_id: Option<String>,
     pub create_checkpoint: bool,
@@ -438,7 +438,7 @@ pub struct ApplyAiSuggestionCommand {
 
 #[derive(Debug, Clone)]
 pub struct CreateAiFeedbackCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_suggestion_id: String,
     pub feedback_type: String,
     pub feedback_text: Option<String>,
@@ -446,20 +446,20 @@ pub struct CreateAiFeedbackCommand {
 
 #[derive(Debug, Clone)]
 pub struct ClaimAiJobCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_job_id: String,
 }
 
 #[derive(Debug, Clone)]
 pub struct CompleteAiJobCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_job_id: String,
     pub suggestions: Vec<CompleteAiSuggestionInput>,
 }
 
 #[derive(Debug, Clone)]
 pub struct FailAiJobCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub ai_job_id: String,
     pub error_code: String,
     pub error_message: String,
@@ -474,7 +474,7 @@ pub struct CompleteAiSuggestionInput {
 
 #[derive(Debug, Clone)]
 pub struct CreateAiJobCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub job_type: String,
     pub target_type: String,
@@ -486,7 +486,7 @@ pub struct CreateAiJobCommand {
 
 #[derive(Debug, Clone)]
 pub struct UpdatePageMetadataCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page_id: String,
     pub title: Option<String>,
     pub favorite: Option<bool>,
@@ -540,7 +540,7 @@ pub enum RemoteApplyMutation {
 
 #[derive(Debug, Clone)]
 pub struct RemoteApplyPageCommand {
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub page_id: String,
     pub idempotency_key: String,
     pub task_id: String,
@@ -555,7 +555,7 @@ pub struct RemoteApplyPageCommand {
 #[derive(Debug, Clone)]
 pub struct NewWorkspace {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub owner_subject_type: String,
     pub owner_subject_id: String,
     pub name: String,
@@ -569,7 +569,7 @@ pub struct NewWorkspace {
 #[derive(Debug, Clone)]
 pub struct NewPage {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub title: String,
     pub page_kind: PageKind,
@@ -581,7 +581,7 @@ pub struct NewPage {
 #[derive(Debug, Clone)]
 pub struct NewAiJob {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub job_type: String,
     pub target_type: String,
@@ -608,7 +608,7 @@ pub struct NewAiJobSource {
 #[derive(Debug, Clone)]
 pub struct NewAiSuggestion {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub page_id: String,
     pub ai_job_id: String,
@@ -622,7 +622,7 @@ pub struct NewAiSuggestion {
 #[derive(Debug, Clone)]
 pub struct NewAiFeedback {
     pub id: String,
-    pub context: NotesActorContext,
+    pub context: CanvasActorContext,
     pub workspace_id: String,
     pub job_id: String,
     pub suggestion_id: Option<String>,

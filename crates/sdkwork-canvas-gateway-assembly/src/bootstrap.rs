@@ -1,15 +1,15 @@
 //! Gateway bootstrap for sdkwork-canvas.
 
 use axum::Router;
-use sdkwork_canvas_pages_service::service::NotesService;
+use sdkwork_canvas_pages_service::service::CanvasPagesService;
 
 pub struct ApplicationAssembly {
     pub router: Router,
 }
 
-pub fn assemble_application_business_router<R, D>(service: NotesService<R, D>) -> ApplicationAssembly
+pub fn assemble_application_business_router<R, D>(service: CanvasPagesService<R, D>) -> ApplicationAssembly
 where
-    R: sdkwork_canvas_pages_service::ports::NotesRepository,
+    R: sdkwork_canvas_pages_service::ports::CanvasRepository,
     D: sdkwork_canvas_pages_service::ports::DrivePageContentPort,
 {
     let app_router = sdkwork_routes_canvas_app_api::gateway_mount(service.clone());

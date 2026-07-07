@@ -1,10 +1,10 @@
 use sdkwork_canvas_pages_service::domain::{
-    DrivePageContentSnapshot, NewPage, NewWorkspace, NotesActorContext, PageKind, PageMetadataPatch,
+    DrivePageContentSnapshot, NewPage, NewWorkspace, CanvasActorContext, PageKind, PageMetadataPatch,
 };
-use sdkwork_canvas_pages_service::error::NotesProductError;
+use sdkwork_canvas_pages_service::error::CanvasProductError;
 use sdkwork_canvas_pages_repository_sqlx::install_sqlite_schema;
-use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlNotesStore;
-use sdkwork_canvas_pages_service::ports::NotesRepository;
+use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlCanvasStore;
+use sdkwork_canvas_pages_service::ports::CanvasRepository;
 use serde_json::json;
 use sqlx::any::AnyPoolOptions;
 use sqlx::Row;
@@ -275,8 +275,8 @@ async fn sql_repository_rejects_stale_metadata_and_drive_pointer_writes_atomical
         .await
         .expect("canvas sqlite schema should install");
 
-    let repository = SqlNotesStore::new(pool);
-    let context = NotesActorContext {
+    let repository = SqlCanvasStore::new(pool);
+    let context = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -326,7 +326,7 @@ async fn sql_repository_rejects_stale_metadata_and_drive_pointer_writes_atomical
         .await;
     assert!(matches!(
         stale_metadata,
-        Err(NotesProductError::Conflict(_))
+        Err(CanvasProductError::Conflict(_))
     ));
     let unchanged = repository
         .find_page(&context, "page-001")
@@ -345,7 +345,7 @@ async fn sql_repository_rejects_stale_metadata_and_drive_pointer_writes_atomical
         .await;
     assert!(matches!(
         stale_drive_pointer,
-        Err(NotesProductError::Conflict(_))
+        Err(CanvasProductError::Conflict(_))
     ));
     let unchanged = repository
         .find_page(&context, "page-001")
@@ -387,8 +387,8 @@ async fn sql_repository_search_uses_current_indexed_projection_and_ignores_stale
         .await
         .expect("canvas sqlite schema should install");
 
-    let repository = SqlNotesStore::new(pool.clone());
-    let context = NotesActorContext {
+    let repository = SqlCanvasStore::new(pool.clone());
+    let context = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -474,8 +474,8 @@ async fn sql_repository_search_treats_like_wildcards_as_literal_query_text() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let repository = SqlNotesStore::new(pool);
-    let context = NotesActorContext {
+    let repository = SqlCanvasStore::new(pool);
+    let context = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -563,8 +563,8 @@ async fn sql_repository_apply_ai_suggestion_updates_page_pointer_and_suggestion_
         .await
         .expect("canvas sqlite schema should install");
 
-    let repository = SqlNotesStore::new(pool.clone());
-    let context = NotesActorContext {
+    let repository = SqlCanvasStore::new(pool.clone());
+    let context = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -627,7 +627,7 @@ async fn sql_repository_apply_ai_suggestion_updates_page_pointer_and_suggestion_
             "drive-version-page-001-v2",
         )
         .await;
-    assert!(matches!(stale_apply, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(stale_apply, Err(CanvasProductError::Conflict(_))));
     let page = repository
         .find_page(&context, "page-001")
         .await
@@ -651,8 +651,8 @@ async fn sql_repository_cancel_ai_job_rejects_concurrent_terminal_state_change()
         .await
         .expect("canvas sqlite schema should install");
 
-    let repository = SqlNotesStore::new(pool.clone());
-    let context = NotesActorContext {
+    let repository = SqlCanvasStore::new(pool.clone());
+    let context = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -684,7 +684,7 @@ async fn sql_repository_cancel_ai_job_rejects_concurrent_terminal_state_change()
     let cancel_result = repository
         .cancel_ai_job(&context, "ai-job-concurrent-cancel")
         .await;
-    assert!(matches!(cancel_result, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(cancel_result, Err(CanvasProductError::Conflict(_))));
 
     let job = repository
         .find_ai_job(&context, "ai-job-concurrent-cancel")
@@ -705,8 +705,8 @@ async fn sql_repository_complete_ai_job_rolls_back_suggestions_when_final_update
         .await
         .expect("canvas sqlite schema should install");
 
-    let repository = SqlNotesStore::new(pool.clone());
-    let context = NotesActorContext {
+    let repository = SqlCanvasStore::new(pool.clone());
+    let context = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -760,7 +760,7 @@ async fn sql_repository_complete_ai_job_rolls_back_suggestions_when_final_update
         .await;
     assert!(matches!(
         complete_result,
-        Err(NotesProductError::Conflict(_))
+        Err(CanvasProductError::Conflict(_))
     ));
 
     let suggestion_count: i64 = sqlx::query_scalar(
@@ -974,8 +974,8 @@ async fn insert_ai_suggestion(pool: &sqlx::AnyPool, id: &str, status: &str) {
 }
 
 async fn seed_workspace_page_and_ai_job(
-    repository: &SqlNotesStore,
-    context: &NotesActorContext,
+    repository: &SqlCanvasStore,
+    context: &CanvasActorContext,
     ai_job_id: &str,
 ) {
     repository

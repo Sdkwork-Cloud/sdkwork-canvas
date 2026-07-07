@@ -1,123 +1,40 @@
 {
   "schemaVersion": 1,
-  "kind": "sdkwork.component.spec",
   "component": {
-    "name": "sdkwork-canvas",
-    "displayName": "SDKWork Canvas Workspace",
-    "version": "0.1.0",
-    "type": "product-workspace",
-    "root": "sdkwork-canvas",
-    "domain": "canvas",
-    "capability": "canvas",
-    "surface": "workspace",
-    "languages": [
-      "rust",
-      "typescript"
+    "identity": {
+      "applicationCode": "canvas",
+      "domain": "canvas",
+      "kind": "application",
+      "displayName": "SDKWork Canvas",
+      "description": "AI-native visual workspace with Drive-backed pages, assets, and multi-tenant collaboration.",
+      "vendor": "SDKWork",
+      "license": "AGPL-3.0-or-later"
+    },
+    "surfaces": [
+      { "name": "app-api", "kind": "http", "authority": "apis/app-api/canvas/canvas-app-api.openapi.json" },
+      { "name": "backend-api", "kind": "http", "authority": "apis/backend-api/canvas/canvas-backend-api.openapi.json" }
     ],
-    "generated": false,
-    "private": false,
-    "manifests": [
-      "Cargo.toml",
-      "package.json",
-      "sdkwork.workflow.json",
-      "specs/topology.spec.json"
+    "canonicalSpecs": [
+      { "path": "../sdkwork-specs/SOUL.md", "purpose": "agent execution soul" },
+      { "path": "../sdkwork-specs/API_SPEC.md", "purpose": "HTTP API envelope and contracts" },
+      { "path": "../sdkwork-specs/WEB_FRAMEWORK_SPEC.md", "purpose": "mandatory web framework integration" },
+      { "path": "../sdkwork-specs/DATABASE_FRAMEWORK_SPEC.md", "purpose": "database lifecycle" },
+      { "path": "../sdkwork-specs/DRIVE_SPEC.md", "purpose": "file upload via Drive" },
+      { "path": "../sdkwork-specs/PAGINATION_SPEC.md", "purpose": "list/search pagination" },
+      { "path": "../sdkwork-specs/APP_PC_ARCHITECTURE_SPEC.md", "purpose": "PC application architecture" }
+    ],
+    "frameworks": [
+      { "name": "sdkwork-web-framework", "path": "../sdkwork-web-framework", "required": true },
+      { "name": "sdkwork-database", "path": "../sdkwork-database", "required": true },
+      { "name": "sdkwork-utils", "path": "../sdkwork-utils", "required": true },
+      { "name": "sdkwork-drive", "path": "../sdkwork-drive", "required": true },
+      { "name": "sdkwork-discovery", "path": "../sdkwork-discovery", "required": false, "deferred": true, "reason": "No RPC services in Phase 1 (ADR-0002)" }
+    ],
+    "verification": [
+      { "command": "cargo check --workspace", "purpose": "Rust compile" },
+      { "command": "pnpm check:pnpm-script-standard", "purpose": "pnpm script standard" },
+      { "command": "pnpm db:validate", "purpose": "database framework standard" },
+      { "command": "node ../sdkwork-specs/tools/check-api-response-envelope.mjs --workspace .", "purpose": "API envelope" }
     ]
-  },
-  "canonicalSpecs": [
-    {
-      "file": "README.md",
-      "path": "../sdkwork-specs/README.md",
-      "purpose": "SDKWork root standards entrypoint."
-    },
-    {
-      "file": "SDKWORK_WORKSPACE_SPEC.md",
-      "path": "../sdkwork-specs/SDKWORK_WORKSPACE_SPEC.md",
-      "purpose": "Repository root directory dictionary and .sdkwork workspace rules."
-    },
-    {
-      "file": "WEB_FRAMEWORK_SPEC.md",
-      "path": "../sdkwork-specs/WEB_FRAMEWORK_SPEC.md",
-      "purpose": "Mandatory sdkwork-web-framework integration for HTTP *-api surfaces."
-    },
-    {
-      "file": "DATABASE_SPEC.md",
-      "path": "../sdkwork-specs/DATABASE_SPEC.md",
-      "purpose": "Portable table contracts and schema evolution."
-    },
-    {
-      "file": "DEPLOYMENT_SPEC.md",
-      "path": "../sdkwork-specs/DEPLOYMENT_SPEC.md",
-      "purpose": "Standalone/cloud deployment profile parity."
-    },
-    {
-      "file": "GITHUB_WORKFLOW_SPEC.md",
-      "path": "../sdkwork-specs/GITHUB_WORKFLOW_SPEC.md",
-      "purpose": "Packaging workflow and artifact publication."
-    },
-    {
-      "file": "TEST_SPEC.md",
-      "path": "../sdkwork-specs/TEST_SPEC.md",
-      "purpose": "Contract, architecture, and verification evidence."
-    }
-  ],
-  "contracts": {
-    "publicExports": [],
-    "runtimeEntrypoints": [
-      "crates/sdkwork-canvas-standalone-gateway",
-      "sdkwork-canvas-pc-react"
-    ],
-    "routeManifest": null,
-    "sdkClients": [
-      "sdks/sdkwork-canvas-app-sdk",
-      "sdks/sdkwork-canvas-backend-sdk",
-      "sdks/sdkwork-canvas-sdk"
-    ],
-    "sdkDependencies": [
-      {
-        "sdkFamily": "sdkwork-iam-app-sdk",
-        "surface": "app-api",
-        "owner": "sdkwork-appbase"
-      },
-      {
-        "sdkFamily": "sdkwork-drive-app-sdk",
-        "surface": "app-api",
-        "owner": "sdkwork-drive"
-      }
-    ],
-    "dependencyApiExports": [],
-    "dependencyApiSurfaces": [
-      {
-        "sdkFamily": "sdkwork-iam-app-sdk",
-        "surface": "app-api",
-        "runtimeMode": "embedded-or-split"
-      },
-      {
-        "sdkFamily": "sdkwork-drive-app-sdk",
-        "surface": "app-api",
-        "runtimeMode": "split-or-remote"
-      }
-    ],
-    "events": [],
-    "configKeys": [
-      "specs/topology.spec.json",
-      "configs/topology/*.env"
-    ]
-  },
-  "integration": {
-    "webFramework": "Rust HTTP runtimes integrate sdkwork-web-framework through sdkwork-web-axum and sdkwork-iam-web-adapter.",
-    "database": "Canvas API server resolves SDKWORK_CANVAS database config through sdkwork-database-config; repository crate declares sdkwork-database-repository entities aligned with database/contract/table-registry.json.",
-    "utils": "Rust HTTP route crates and pages-service use sdkwork-utils-rust; PC commons re-exports @sdkwork/utils text helpers.",
-    "discovery": "Not required until RPC services are introduced.",
-    "drive": "Canvas API server routes page content through SdkDriveAppFacadePageContentPort (sdkwork-drive-app-sdk-generated-rust). Production profiles disable memory Drive and require SDKWORK_DRIVE_FACADE_URL."
-  },
-  "verification": {
-    "commands": [
-      "pnpm verify",
-      "node --test scripts/verify-canvas-standard-architecture.test.mjs"
-    ]
-  },
-  "metadata": {
-    "managedBy": "sdkwork-canvas-standard-alignment",
-    "standardVersion": "2026-06-18"
   }
 }

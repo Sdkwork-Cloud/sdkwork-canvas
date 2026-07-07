@@ -1,1 +1,0 @@
-export { SdkworkIamThemeProvider } from './SdkworkIamThemeProvider';

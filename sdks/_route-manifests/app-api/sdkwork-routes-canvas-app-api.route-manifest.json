@@ -115,7 +115,7 @@
     },
     {
       "method": "GET",
-      "path": "/app/v3/api/canvas",
+      "path": "/app/v3/api/canvas/workspaces/{workspaceId}/boards",
       "operationId": "pages.list",
       "tags": [
         "canvas"
@@ -148,7 +148,7 @@
     },
     {
       "method": "POST",
-      "path": "/app/v3/api/canvas",
+      "path": "/app/v3/api/canvas/workspaces/{workspaceId}/boards",
       "operationId": "pages.create",
       "tags": [
         "canvas"

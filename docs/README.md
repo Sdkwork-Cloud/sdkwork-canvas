@@ -1,21 +1,19 @@
-# docs/
+# Documentation Index
 
-Documentation for SDKWork Canvas.
+Canon entrypoints for SDKWork Canvas.
 
-| Area | Entry |
-| --- | --- |
-| Root layout | [root-layout.md](root-layout.md) |
-| Spec alignment audit | [architecture/sdkwork-specs-alignment-audit.md](architecture/sdkwork-specs-alignment-audit.md) |
-| Schema registry | [schema-registry/README.md](schema-registry/README.md) |
-| Product architecture (archive) | [架构/README.md](架构/README.md) |
+## Product
 
-## Canon Documents
+- [PRD.md](product/prd/PRD.md) — product requirements and acceptance criteria
 
-| Document | Path |
-| --- | --- |
-| Product PRD | [product/prd/PRD.md](product/prd/PRD.md) |
-| Technical architecture | [architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md) |
+## Architecture
 
-- [docs/product/prd/PRD.md](product/prd/PRD.md)
-- [docs/architecture/tech/TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md)
+- [TECH_ARCHITECTURE.md](architecture/tech/TECH_ARCHITECTURE.md) — technical architecture
+- [Architecture decisions](architecture/decisions/README.md)
 
+## Engineering
+
+- [Engineering plans](engineering/plans/README.md)
+- [Runbooks](runbooks/README.md)
+
+Authority: `../sdkwork-specs/DOCUMENTATION_SPEC.md`

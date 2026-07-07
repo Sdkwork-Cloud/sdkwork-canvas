@@ -6,7 +6,7 @@ use crate::dto::{
 };
 use crate::envelope::{page_data, resource_data};
 use crate::error::{map_product_error, ApiResult};
-use crate::state::NotesBackendState;
+use crate::state::CanvasBackendState;
 use axum::extract::{Path, Query, State};
 use axum::response::Response;
 use sdkwork_canvas_pages_service::domain::{
@@ -14,18 +14,18 @@ use sdkwork_canvas_pages_service::domain::{
     CompleteAiSuggestionInput, FailAiJobCommand, ListAiJobsQuery, ListAiSuggestionFeedbackQuery,
     RejectAiSuggestionCommand,
 };
-use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, NotesRepository};
+use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, CanvasRepository};
 use sdkwork_routes_canvas_http_auth::finish_api_json;
 use sdkwork_utils_rust::SdkWorkResourceData;
 use sdkwork_web_core::WebRequestContext;
 
 pub(crate) async fn list_ai_jobs<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Query(query): Query<AiJobListQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {
@@ -50,12 +50,12 @@ where
 }
 
 pub(crate) async fn get_ai_job<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_job_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiJobResponse>> = async {
@@ -72,12 +72,12 @@ where
 }
 
 pub(crate) async fn cancel_ai_job<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_job_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiJobResponse>> = async {
@@ -94,12 +94,12 @@ where
 }
 
 pub(crate) async fn claim_ai_job<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_job_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiJobResponse>> = async {
@@ -119,13 +119,13 @@ where
 }
 
 pub(crate) async fn complete_ai_job<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_job_id): Path<String>,
     axum::Json(payload): axum::Json<CompleteAiJobRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiJobResponse>> = async {
@@ -154,13 +154,13 @@ where
 }
 
 pub(crate) async fn fail_ai_job<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_job_id): Path<String>,
     axum::Json(payload): axum::Json<FailAiJobRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiJobResponse>> = async {
@@ -182,12 +182,12 @@ where
 }
 
 pub(crate) async fn accept_ai_suggestion<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiSuggestionResponse>> = async {
@@ -207,12 +207,12 @@ where
 }
 
 pub(crate) async fn reject_ai_suggestion<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiSuggestionResponse>> = async {
@@ -232,13 +232,13 @@ where
 }
 
 pub(crate) async fn apply_ai_suggestion<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
     axum::Json(payload): axum::Json<AiSuggestionApplyRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageContentResponse>> = async {
@@ -260,13 +260,13 @@ where
 }
 
 pub(crate) async fn list_ai_suggestion_feedback<R, D>(
-    State(state): State<NotesBackendState<R, D>>,
+    State(state): State<CanvasBackendState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
     Query(query): Query<AiFeedbackListQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {

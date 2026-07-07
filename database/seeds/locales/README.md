@@ -1,6 +1,7 @@
-Locale seed directories:
+# Seed Locales
 
-- `zh-CN/` — default active locale
-- `en-US/`, `ja-JP/`, `de-DE/`, `fr-FR/`, `ru-RU/`, `ko-KR/` — reserved placeholders
+多语言种子数据目录。
 
-Each active locale directory contains ordered SQL seed files referenced by `seeds/seed.manifest.json`.
+每个 locale 子目录存放该语言特有的种子数据。当前活跃 locale: `zh-CN`, `en-US`。
+
+支持但未激活的 locale: `ja-JP`, `de-DE`, `fr-FR`, `ru-RU`, `ko-KR`。

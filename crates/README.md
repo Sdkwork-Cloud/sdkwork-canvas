@@ -1,13 +1,14 @@
-# crates/
-
-Rust HTTP route crates, auth layer, API server, and SQLx repositories for SDKWork Canvas.
+# Canvas Rust Crates
 
 | Crate | Role |
 | --- | --- |
-| `sdkwork-routes-canvas-app-api` | App API routes (`/app/v3/api/canvas/...`) |
-| `sdkwork-routes-canvas-backend-api` | Backend/admin API routes |
-| `sdkwork-routes-canvas-http-auth` | HTTP auth helpers and web-framework layer wiring |
-| `sdkwork-canvas-standalone-gateway` | Runnable API server binary |
-| `sdkwork-canvas-pages-repository-sqlx` | SQLx repository for Notes-owned tables |
+| `sdkwork-canvas-pages-service` | Domain services (workspaces, pages, assets) |
+| `sdkwork-canvas-pages-repository-sqlx` | SQLx repositories |
+| `sdkwork-canvas-database-host` | Database lifecycle SPI host |
+| `sdkwork-routes-canvas-app-api` | App-api HTTP routes |
+| `sdkwork-routes-canvas-backend-api` | Backend-api HTTP routes |
+| `sdkwork-routes-canvas-http-auth` | Auth/credential-entry routes |
+| `sdkwork-canvas-gateway-assembly` | Gateway route assembly |
+| `sdkwork-canvas-standalone-gateway` | Standalone gateway binary |
 
-Product/business logic lives in [../services/](../services/).
+All HTTP routes mount through `sdkwork-web-framework`.

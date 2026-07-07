@@ -1,5 +1,5 @@
 # Architecture Documentation
 
-Technical architecture, ADRs, and views.
+Technical architecture directory, ADRs, and views.
 
 See `DOCUMENTATION_SPEC.md` section 2.

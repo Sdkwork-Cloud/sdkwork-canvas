@@ -2,8 +2,8 @@ use crate::context::authenticated_actor;
 use crate::dto::{
     AiFeedbackCreateRequest, AiFeedbackResponse, AiJobResponse, AiSuggestionApplyRequest,
     AiSuggestionResponse, CreateAiJobRequest, CreatePageRequest,
-    CreateWorkspaceRequest, DriveVersionSummaryResponse, NoteRemoteApplyMutationRequest,
-    NoteRemoteApplyRequest, NoteRemoteApplyResultResponse, NotesPageQuery, NotesSearchQuery,
+    CreateWorkspaceRequest, DriveVersionSummaryResponse, CanvasRemoteApplyMutationRequest,
+    CanvasRemoteApplyRequest, CanvasRemoteApplyResultResponse, CanvasPageQuery, CanvasSearchQuery,
     PageContentResponse, PageResponse, PageSummaryResponse, RestorePageVersionRequest,
     SearchResultResponse, UpdatePageContentRequest, UpdatePageRequest,
     WorkspaceBootstrapResponse, WorkspaceResponse,
@@ -22,23 +22,23 @@ use sdkwork_canvas_pages_service::domain::{
     RemoteApplyPageResult, RestorePageVersionCommand, SearchQuery, UpdatePageContentCommand,
     UpdatePageMetadataCommand,
 };
-use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, NotesRepository};
+use sdkwork_canvas_pages_service::ports::{DrivePageContentPort, CanvasRepository};
 use sdkwork_routes_canvas_http_auth::{
     finish_accepted_json, finish_api_json, finish_created_json,
 };
 use sdkwork_utils_rust::string::{is_blank, trim};
 use sdkwork_utils_rust::SdkWorkResourceData;
 use sdkwork_web_core::WebRequestContext;
-use crate::state::NotesAppState;
+use crate::state::CanvasAppState;
 use serde_json::json;
 
 pub(crate) async fn list_workspaces<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
-    Query(query): Query<NotesPageQuery>,
+    Query(query): Query<CanvasPageQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {
@@ -62,12 +62,12 @@ where
 }
 
 pub(crate) async fn create_workspace<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     axum::Json(payload): axum::Json<CreateWorkspaceRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<WorkspaceResponse>> = async {
@@ -109,12 +109,12 @@ where
 }
 
 pub(crate) async fn get_workspace_bootstrap<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(workspace_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<WorkspaceBootstrapResponse>> = async {
@@ -132,13 +132,13 @@ where
 }
 
 pub(crate) async fn list_pages<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(workspace_id): Path<String>,
-    Query(query): Query<NotesPageQuery>,
+    Query(query): Query<CanvasPageQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {
@@ -164,13 +164,13 @@ where
 }
 
 pub(crate) async fn create_page<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(workspace_id): Path<String>,
     axum::Json(payload): axum::Json<CreatePageRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageResponse>> = async {
@@ -207,12 +207,12 @@ where
 }
 
 pub(crate) async fn get_page<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageResponse>> = async {
@@ -229,13 +229,13 @@ where
 }
 
 pub(crate) async fn update_page<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
     axum::Json(payload): axum::Json<UpdatePageRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageResponse>> = async {
@@ -262,16 +262,16 @@ where
 }
 
 pub(crate) async fn remote_apply_page<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
-    axum::Json(payload): axum::Json<NoteRemoteApplyRequest>,
+    axum::Json(payload): axum::Json<CanvasRemoteApplyRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
-    let result: ApiResult<SdkWorkResourceData<NoteRemoteApplyResultResponse>> = async {
+    let result: ApiResult<SdkWorkResourceData<CanvasRemoteApplyResultResponse>> = async {
         let context = authenticated_actor(&app_ctx, "canvas.boards.write")?;
         let result = state
             .service
@@ -297,20 +297,20 @@ where
 }
 
 fn map_remote_apply_mutation(
-    mutation: NoteRemoteApplyMutationRequest,
+    mutation: CanvasRemoteApplyMutationRequest,
 ) -> Result<RemoteApplyMutation, ApiProblem> {
     match mutation {
-        NoteRemoteApplyMutationRequest::Patch { patch } => Ok(RemoteApplyMutation::UpsertPatch {
+        CanvasRemoteApplyMutationRequest::Patch { patch } => Ok(RemoteApplyMutation::UpsertPatch {
             title: patch.title,
             content: patch.content,
             parent_id: patch.parent_id,
             is_favorite: patch.is_favorite,
             publish_status: patch.publish_status,
         }),
-        NoteRemoteApplyMutationRequest::Move { target_parent_id } => {
+        CanvasRemoteApplyMutationRequest::Move { target_parent_id } => {
             Ok(RemoteApplyMutation::Move { target_parent_id })
         }
-        NoteRemoteApplyMutationRequest::Intent { intent } => match intent.as_str() {
+        CanvasRemoteApplyMutationRequest::Intent { intent } => match intent.as_str() {
             "move-to-trash" => Ok(RemoteApplyMutation::TrashIntent),
             "restore-from-trash" => Ok(RemoteApplyMutation::RestoreIntent),
             "permanent-delete" => Ok(RemoteApplyMutation::PermanentDeleteIntent),
@@ -321,14 +321,14 @@ fn map_remote_apply_mutation(
     }
 }
 
-impl From<RemoteApplyPageResult> for NoteRemoteApplyResultResponse {
+impl From<RemoteApplyPageResult> for CanvasRemoteApplyResultResponse {
     fn from(result: RemoteApplyPageResult) -> Self {
         Self {
             outcome: result.outcome,
             task_id: result.task_id,
             remote_cursor: result.remote_cursor,
             applied_at: result.applied_at,
-            conflict: result.conflict.map(|conflict| crate::dto::NoteRemoteApplyConflictResponse {
+            conflict: result.conflict.map(|conflict| crate::dto::CanvasRemoteApplyConflictResponse {
                 code: conflict.code,
                 message: conflict.message,
                 occurred_at: conflict.occurred_at,
@@ -338,12 +338,12 @@ impl From<RemoteApplyPageResult> for NoteRemoteApplyResultResponse {
 }
 
 pub(crate) async fn get_page_content<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageContentResponse>> = async {
@@ -360,13 +360,13 @@ where
 }
 
 pub(crate) async fn update_page_content<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
     axum::Json(payload): axum::Json<UpdatePageContentRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageContentResponse>> = async {
@@ -392,13 +392,13 @@ where
 }
 
 pub(crate) async fn list_page_versions<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
-    Query(query): Query<NotesPageQuery>,
+    Query(query): Query<CanvasPageQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {
@@ -427,13 +427,13 @@ where
 }
 
 pub(crate) async fn restore_page_version<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path((page_id, drive_version_id)): Path<(String, String)>,
     axum::Json(payload): axum::Json<RestorePageVersionRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageContentResponse>> = async {
@@ -455,13 +455,13 @@ where
 }
 
 pub(crate) async fn list_page_ai_suggestions<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(page_id): Path<String>,
-    Query(query): Query<NotesPageQuery>,
+    Query(query): Query<CanvasPageQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {
@@ -490,12 +490,12 @@ where
 }
 
 pub(crate) async fn accept_ai_suggestion<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiSuggestionResponse>> = async {
@@ -515,12 +515,12 @@ where
 }
 
 pub(crate) async fn reject_ai_suggestion<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiSuggestionResponse>> = async {
@@ -540,13 +540,13 @@ where
 }
 
 pub(crate) async fn apply_ai_suggestion<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
     axum::Json(payload): axum::Json<AiSuggestionApplyRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<PageContentResponse>> = async {
@@ -568,13 +568,13 @@ where
 }
 
 pub(crate) async fn create_ai_suggestion_feedback<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     Path(ai_suggestion_id): Path<String>,
     axum::Json(payload): axum::Json<AiFeedbackCreateRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiFeedbackResponse>> = async {
@@ -596,12 +596,12 @@ where
 }
 
 pub(crate) async fn query_search<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
-    Query(query): Query<NotesSearchQuery>,
+    Query(query): Query<CanvasSearchQuery>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<_> = async {
@@ -631,13 +631,13 @@ where
 }
 
 pub(crate) async fn create_ai_job<R, D>(
-    State(state): State<NotesAppState<R, D>>,
+    State(state): State<CanvasAppState<R, D>>,
     app_ctx: WebRequestContext,
     headers: HeaderMap,
     axum::Json(payload): axum::Json<CreateAiJobRequest>,
 ) -> Response
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     let result: ApiResult<SdkWorkResourceData<AiJobResponse>> = async {

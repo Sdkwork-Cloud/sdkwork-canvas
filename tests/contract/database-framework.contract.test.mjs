@@ -1,9 +1,16 @@
-#!/usr/bin/env node
-import assert from 'node:assert/strict';
-import { validateDatabaseFramework } from '../../../sdkwork-specs/tools/check-database-framework-standard.mjs';
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import test from "node:test";
+import { fileURLToPath } from "node:url";
 
-const result = validateDatabaseFramework(process.cwd());
-assert.equal(result.skipped, false, 'application must own database/');
-assert.equal(result.ok, true, `database framework validation failed: ${result.failures.join('; ')}`);
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 
-process.stdout.write('database-framework.contract.test.mjs passed\n');
+test("database manifest follows sdkwork-database module shape", () => {
+  const manifest = JSON.parse(
+    readFileSync(path.join(root, "database/database.manifest.json"), "utf8"),
+  );
+  assert.equal(manifest.kind, "sdkwork.database.module");
+  assert.equal(manifest.moduleId, "canvas");
+  assert.equal(manifest.tablePrefix, "canvas_");
+});

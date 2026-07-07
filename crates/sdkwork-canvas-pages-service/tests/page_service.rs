@@ -6,19 +6,19 @@ use sdkwork_canvas_pages_service::domain::{
     DrivePageContentSnapshot, DriveVersionPage, DriveVersionSummary, ListAiJobsQuery,
     ListAiSuggestionFeedbackQuery, ListPageAiSuggestionsQuery, ListPageVersionsQuery,
     ListPagesQuery, ListWorkspacesQuery, NewAiFeedback, NewAiJob, NewAiSuggestion, NewPage,
-    NewWorkspace, NotesActorContext, Page, PageInfo, PageKind, PageMetadataPatch,
+    NewWorkspace, CanvasActorContext, Page, PageInfo, PageKind, PageMetadataPatch,
     RejectAiSuggestionCommand, RestorePageVersionCommand, SearchQuery, UpdatePageContentCommand,
     UpdatePageMetadataCommand, Workspace,
 };
-use sdkwork_canvas_pages_service::error::NotesProductError;
+use sdkwork_canvas_pages_service::error::CanvasProductError;
 use sdkwork_canvas_pages_repository_sqlx::install_sqlite_schema;
-use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlNotesStore;
+use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlCanvasStore;
 use sdkwork_canvas_pages_service::ports::{
     CreateDrivePageContentCommand, DrivePageContentPort, ListDrivePageContentVersionsCommand,
-    NotesRepository, ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
+    CanvasRepository, ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
     UpdateDrivePageContentCommand,
 };
-use sdkwork_canvas_pages_service::service::NotesService;
+use sdkwork_canvas_pages_service::service::CanvasPagesService;
 use serde_json::json;
 use sqlx::any::AnyPoolOptions;
 use sqlx::Row;
@@ -40,8 +40,8 @@ async fn page_content_lifecycle_stores_drive_refs_and_updates_current_version() 
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool.clone()), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool.clone()), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -140,13 +140,13 @@ async fn page_workflows_normalize_context_and_resource_ids_before_repository_and
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
     };
-    let padded_actor = NotesActorContext {
+    let padded_actor = CanvasActorContext {
         tenant_id: " 100001 ".to_string(),
         organization_id: " 0 ".to_string(),
         operator_id: " 30 ".to_string(),
@@ -275,8 +275,8 @@ async fn update_page_content_validates_payload_before_drive_content_is_written()
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -329,7 +329,7 @@ async fn update_page_content_validates_payload_before_drive_content_is_written()
         .await;
     assert!(matches!(
         invalid_content,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert_eq!(drive.update_count("page-001").await, drive_update_count);
 }
@@ -347,8 +347,8 @@ async fn update_page_content_rejects_oversized_content_metadata_before_drive_con
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -401,7 +401,7 @@ async fn update_page_content_rejects_oversized_content_metadata_before_drive_con
         .await;
     assert!(matches!(
         oversized_content_type,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert_eq!(drive.update_count("page-001").await, drive_update_count);
 
@@ -419,7 +419,7 @@ async fn update_page_content_rejects_oversized_content_metadata_before_drive_con
         .await;
     assert!(matches!(
         oversized_schema_version,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert_eq!(drive.update_count("page-001").await, drive_update_count);
 }
@@ -438,8 +438,8 @@ async fn create_page_rejects_invalid_drive_snapshot_before_canvas_page_is_persis
 
     let drive = FakeDrivePageContentPort::default();
     drive.invalidate_next_create_drive_version_id().await;
-    let service = NotesService::new(SqlNotesStore::new(pool.clone()), drive);
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool.clone()), drive);
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -476,7 +476,7 @@ async fn create_page_rejects_invalid_drive_snapshot_before_canvas_page_is_persis
             change_summary: Some("Initial page".to_string()),
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
     let page_count: i64 =
         sqlx::query_scalar("SELECT COUNT(1) FROM canvas_page WHERE id='page-invalid-drive-version'")
             .fetch_one(&pool)
@@ -499,8 +499,8 @@ async fn create_page_rejects_drive_snapshot_with_unexpected_content_metadata_bef
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool.clone()), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool.clone()), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -540,7 +540,7 @@ async fn create_page_rejects_drive_snapshot_with_unexpected_content_metadata_bef
             change_summary: Some("Initial page".to_string()),
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let page_count: i64 = sqlx::query_scalar(
         "SELECT COUNT(1) FROM canvas_page WHERE id='page-wrong-content-metadata'",
@@ -555,8 +555,8 @@ async fn create_page_rejects_drive_snapshot_with_unexpected_content_metadata_bef
 async fn create_page_reports_reconciliation_when_canvas_insert_fails_after_drive_content_is_created()
 {
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(ConcurrentPageInsertRepository, drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(ConcurrentPageInsertRepository, drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -595,8 +595,8 @@ async fn update_page_content_rejects_invalid_drive_snapshot_before_canvas_page_i
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -647,7 +647,7 @@ async fn update_page_content_rejects_invalid_drive_snapshot_before_canvas_page_i
             create_checkpoint: false,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let unchanged_page = service
         .get_page(&actor, &page.id)
@@ -677,8 +677,8 @@ async fn update_page_content_rejects_drive_snapshot_with_unexpected_content_meta
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -731,7 +731,7 @@ async fn update_page_content_rejects_drive_snapshot_with_unexpected_content_meta
             create_checkpoint: false,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let unchanged_page = service
         .get_page(&actor, &page.id)
@@ -765,8 +765,8 @@ async fn update_page_content_rejects_drive_snapshot_that_does_not_advance_versio
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -819,7 +819,7 @@ async fn update_page_content_rejects_drive_snapshot_that_does_not_advance_versio
             create_checkpoint: false,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let unchanged_page = service
         .get_page(&actor, &page.id)
@@ -849,8 +849,8 @@ async fn update_page_content_rejects_drive_snapshot_for_wrong_node_before_canvas
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -901,7 +901,7 @@ async fn update_page_content_rejects_drive_snapshot_for_wrong_node_before_canvas
             create_checkpoint: false,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let unchanged_page = service
         .get_page(&actor, &page.id)
@@ -931,8 +931,8 @@ async fn update_page_content_rejects_non_object_drive_content_before_canvas_page
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -985,7 +985,7 @@ async fn update_page_content_rejects_non_object_drive_content_before_canvas_page
             create_checkpoint: false,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let unchanged_page = service
         .get_page(&actor, &page.id)
@@ -1014,8 +1014,8 @@ async fn get_page_content_rejects_drive_snapshot_that_does_not_match_current_can
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1057,7 +1057,7 @@ async fn get_page_content_rejects_drive_snapshot_that_does_not_match_current_can
         .make_next_read_snapshot_use_wrong_drive_version()
         .await;
     let result = service.get_page_content(&actor, &page.id).await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 }
 
 #[tokio::test]
@@ -1073,8 +1073,8 @@ async fn update_page_content_preserves_existing_content_metadata_when_request_om
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1155,8 +1155,8 @@ async fn update_page_content_defaults_drive_expected_version_to_current_canvas_p
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1231,8 +1231,8 @@ async fn update_page_content_rejects_stale_expected_drive_version_before_drive_w
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1299,7 +1299,7 @@ async fn update_page_content_rejects_stale_expected_drive_version_before_drive_w
         })
         .await;
 
-    assert!(matches!(stale_result, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(stale_result, Err(CanvasProductError::Conflict(_))));
     assert_eq!(drive.update_count(&page.id).await, drive_update_count);
 }
 
@@ -1316,8 +1316,8 @@ async fn create_page_rejects_duplicate_page_id_before_drive_content_is_written()
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1373,7 +1373,7 @@ async fn create_page_rejects_duplicate_page_id_before_drive_content_is_written()
         })
         .await;
 
-    assert!(matches!(duplicate, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(duplicate, Err(CanvasProductError::Conflict(_))));
     assert_eq!(drive.create_count("page-001").await, drive_create_count);
 }
 
@@ -1390,13 +1390,13 @@ async fn create_page_rejects_globally_reserved_page_id_before_drive_content_is_w
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let first_actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let first_actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
     };
-    let second_actor = NotesActorContext {
+    let second_actor = CanvasActorContext {
         tenant_id: "100002".to_string(),
         organization_id: "300002".to_string(),
         operator_id: "user-002".to_string(),
@@ -1467,7 +1467,7 @@ async fn create_page_rejects_globally_reserved_page_id_before_drive_content_is_w
         })
         .await;
 
-    assert!(matches!(duplicate, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(duplicate, Err(CanvasProductError::Conflict(_))));
     assert_eq!(
         drive.create_count("page-global-001").await,
         drive_create_count
@@ -1487,8 +1487,8 @@ async fn create_page_validates_metadata_before_drive_content_is_written() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1527,7 +1527,7 @@ async fn create_page_validates_metadata_before_drive_content_is_written() {
         .await;
     assert!(matches!(
         too_long_title_result,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert!(!drive.has_page("page-title-too-long").await);
 
@@ -1548,7 +1548,7 @@ async fn create_page_validates_metadata_before_drive_content_is_written() {
         .await;
     assert!(matches!(
         missing_parent_result,
-        Err(NotesProductError::NotFound(_))
+        Err(CanvasProductError::NotFound(_))
     ));
     assert!(!drive.has_page("page-missing-parent").await);
 }
@@ -1566,8 +1566,8 @@ async fn create_page_rejects_oversized_content_metadata_before_drive_content_is_
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1606,7 +1606,7 @@ async fn create_page_rejects_oversized_content_metadata_before_drive_content_is_
         .await;
     assert!(matches!(
         oversized_content_type,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert_eq!(drive.create_count("page-content-type-too-long").await, 0);
 
@@ -1627,7 +1627,7 @@ async fn create_page_rejects_oversized_content_metadata_before_drive_content_is_
         .await;
     assert!(matches!(
         oversized_schema_version,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert_eq!(drive.create_count("page-schema-version-too-long").await, 0);
 }
@@ -1645,8 +1645,8 @@ async fn create_workspace_normalizes_and_validates_metadata_before_sql_constrain
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1696,7 +1696,7 @@ async fn create_workspace_normalizes_and_validates_metadata_before_sql_constrain
         .await;
     assert!(matches!(
         invalid_owner_type,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
 
     let too_long_name = service
@@ -1715,7 +1715,7 @@ async fn create_workspace_normalizes_and_validates_metadata_before_sql_constrain
         .await;
     assert!(matches!(
         too_long_name,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
 }
 
@@ -1732,8 +1732,8 @@ async fn read_models_list_bootstrap_and_update_page_metadata_without_drive_conte
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1863,7 +1863,7 @@ async fn read_models_list_bootstrap_and_update_page_metadata_without_drive_conte
         .await;
     assert!(matches!(
         oversized_query,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
 
     let bootstrap = service
@@ -1917,7 +1917,7 @@ async fn read_models_list_bootstrap_and_update_page_metadata_without_drive_conte
             expected_version: Some("1".to_string()),
         })
         .await;
-    assert!(matches!(stale_update, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(stale_update, Err(CanvasProductError::Conflict(_))));
 }
 
 #[tokio::test]
@@ -1933,8 +1933,8 @@ async fn page_versions_are_listed_from_drive_without_canvas_revision_rows() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2037,8 +2037,8 @@ async fn page_versions_reject_invalid_drive_version_summaries() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2086,7 +2086,7 @@ async fn page_versions_reject_invalid_drive_version_summaries() {
         })
         .await;
 
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 }
 
 #[tokio::test]
@@ -2102,8 +2102,8 @@ async fn page_versions_reject_unbounded_drive_version_pages() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2151,7 +2151,7 @@ async fn page_versions_reject_unbounded_drive_version_pages() {
         })
         .await;
 
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 }
 
 #[tokio::test]
@@ -2167,8 +2167,8 @@ async fn page_versions_reject_drive_page_info_mismatches() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2216,7 +2216,7 @@ async fn page_versions_reject_drive_page_info_mismatches() {
         })
         .await;
 
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 }
 
 #[tokio::test]
@@ -2232,8 +2232,8 @@ async fn restore_page_version_creates_drive_owned_restore_version_and_advances_c
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2338,8 +2338,8 @@ async fn restore_page_version_defaults_expected_current_drive_version_to_canvas_
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2415,7 +2415,7 @@ async fn restore_page_version_defaults_expected_current_drive_version_to_canvas_
 async fn restore_page_version_reports_reconciliation_when_canvas_pointer_changes_after_drive_restore(
 ) {
     let drive = FakeDrivePageContentPort::default();
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2438,7 +2438,7 @@ async fn restore_page_version_reports_reconciliation_when_canvas_pointer_changes
         })
         .await
         .expect("Drive content seed should be created");
-    let service = NotesService::new(ConcurrentDriveSnapshotRepository, drive.clone());
+    let service = CanvasPagesService::new(ConcurrentDriveSnapshotRepository, drive.clone());
 
     let result = service
         .restore_page_version(RestorePageVersionCommand {
@@ -2470,8 +2470,8 @@ async fn restore_page_version_rejects_drive_snapshot_that_does_not_advance_versi
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2533,7 +2533,7 @@ async fn restore_page_version_rejects_drive_snapshot_that_does_not_advance_versi
             expected_current_drive_version_id: Some(current.drive_version_id),
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let unchanged_page = service
         .get_page(&actor, &page.id)
@@ -2560,8 +2560,8 @@ async fn restore_page_version_rejects_drive_snapshot_with_oversized_content_meta
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2625,7 +2625,7 @@ async fn restore_page_version_rejects_drive_snapshot_with_oversized_content_meta
         .await;
     assert!(matches!(
         restore_result,
-        Err(NotesProductError::Internal(_))
+        Err(CanvasProductError::Internal(_))
     ));
 
     let unchanged_page = service
@@ -2646,11 +2646,11 @@ async fn restore_page_version_rejects_drive_snapshot_with_oversized_content_meta
 
 #[tokio::test]
 async fn update_page_metadata_rejects_when_repository_version_changed_after_service_read() {
-    let service = NotesService::new(
+    let service = CanvasPagesService::new(
         ConcurrentMetadataRepository,
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2669,14 +2669,14 @@ async fn update_page_metadata_rejects_when_repository_version_changed_after_serv
         })
         .await;
 
-    assert!(matches!(stale_result, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(stale_result, Err(CanvasProductError::Conflict(_))));
 }
 
 #[tokio::test]
 async fn update_page_content_rejects_when_canvas_current_drive_version_changed_before_db_advance() {
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(ConcurrentDriveSnapshotRepository, drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(ConcurrentDriveSnapshotRepository, drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2712,8 +2712,8 @@ async fn search_query_returns_page_summaries_with_drive_version_provenance() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2836,11 +2836,11 @@ async fn search_query_highlights_current_projection_snippet_when_match_comes_fro
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool.clone()),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool.clone()),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -2925,11 +2925,11 @@ async fn ai_job_creation_records_page_source_drive_version_provenance_and_idempo
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool.clone()),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool.clone()),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -3041,15 +3041,15 @@ async fn ai_job_creation_records_page_source_drive_version_provenance_and_idempo
         .await;
     assert!(matches!(
         conflicting_replay,
-        Err(NotesProductError::Conflict(_))
+        Err(CanvasProductError::Conflict(_))
     ));
 }
 
 #[tokio::test]
 async fn ai_job_creation_replays_existing_job_when_concurrent_idempotent_insert_wins_race() {
     let repository = ConcurrentAiJobIdempotencyRepository::default();
-    let service = NotesService::new(repository.clone(), FakeDrivePageContentPort::default());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(repository.clone(), FakeDrivePageContentPort::default());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -3079,8 +3079,8 @@ async fn ai_job_creation_replays_existing_job_when_concurrent_idempotent_insert_
 #[tokio::test]
 async fn page_ai_job_creation_rejects_missing_target_id_before_repository_reads() {
     let repository = PanicOnAiJobTargetRepository;
-    let service = NotesService::new(repository, FakeDrivePageContentPort::default());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(repository, FakeDrivePageContentPort::default());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -3099,7 +3099,7 @@ async fn page_ai_job_creation_rejects_missing_target_id_before_repository_reads(
         })
         .await;
 
-    assert!(matches!(result, Err(NotesProductError::Validation(_))));
+    assert!(matches!(result, Err(CanvasProductError::Validation(_))));
 }
 
 #[tokio::test]
@@ -3114,11 +3114,11 @@ async fn ai_job_creation_hashes_and_resolves_normalized_request_values() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -3202,13 +3202,13 @@ async fn ai_workflows_normalize_context_and_resource_ids_before_repository_and_d
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
     };
-    let padded_actor = NotesActorContext {
+    let padded_actor = CanvasActorContext {
         tenant_id: " 100001 ".to_string(),
         organization_id: " 0 ".to_string(),
         operator_id: " 30 ".to_string(),
@@ -3370,11 +3370,11 @@ async fn backend_ai_job_admin_lists_retrieves_and_cancels_jobs() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "admin-001".to_string(),
@@ -3476,21 +3476,21 @@ async fn ai_job_claim_is_exclusive_and_rejects_second_worker_claim() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let creator = NotesActorContext {
+    let creator = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "worker-creator".to_string(),
     };
-    let first_worker = NotesActorContext {
+    let first_worker = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "worker-001".to_string(),
     };
-    let second_worker = NotesActorContext {
+    let second_worker = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "worker-002".to_string(),
@@ -3556,7 +3556,7 @@ async fn ai_job_claim_is_exclusive_and_rejects_second_worker_claim() {
             ai_job_id: job.id.clone(),
         })
         .await;
-    assert!(matches!(second_claim, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(second_claim, Err(CanvasProductError::Conflict(_))));
 
     let running = service
         .get_ai_job(&second_worker, &job.id)
@@ -3577,11 +3577,11 @@ async fn ai_job_worker_claims_completes_and_lists_page_suggestions() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "worker-001".to_string(),
@@ -3715,7 +3715,7 @@ async fn ai_job_worker_claims_completes_and_lists_page_suggestions() {
         .await;
     assert!(matches!(
         second_complete,
-        Err(NotesProductError::Conflict(_))
+        Err(CanvasProductError::Conflict(_))
     ));
 }
 
@@ -3731,11 +3731,11 @@ async fn page_target_ai_job_rejects_suggestions_for_unscoped_pages() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -3823,7 +3823,7 @@ async fn page_target_ai_job_rejects_suggestions_for_unscoped_pages() {
         .await;
     assert!(matches!(
         complete_result,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
 
     let unrelated_suggestions = service
@@ -3850,11 +3850,11 @@ async fn ai_suggestion_decisions_accept_reject_and_conflict() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -3993,7 +3993,7 @@ async fn ai_suggestion_decisions_accept_reject_and_conflict() {
         .await;
     assert!(matches!(
         conflicting_reject,
-        Err(NotesProductError::Conflict(_))
+        Err(CanvasProductError::Conflict(_))
     ));
 }
 
@@ -4009,11 +4009,11 @@ async fn ai_suggestion_accept_rejects_when_concurrent_decision_wins_race() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool.clone()),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool.clone()),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4120,7 +4120,7 @@ async fn ai_suggestion_accept_rejects_when_concurrent_decision_wins_race() {
             ai_suggestion_id: suggestion_id,
         })
         .await;
-    assert!(matches!(accept_result, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(accept_result, Err(CanvasProductError::Conflict(_))));
 }
 
 #[tokio::test]
@@ -4135,11 +4135,11 @@ async fn accepted_ai_suggestion_applies_drive_backed_page_content() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4298,8 +4298,8 @@ async fn ai_suggestion_apply_rejects_oversized_content_metadata_before_drive_con
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4404,7 +4404,7 @@ async fn ai_suggestion_apply_rejects_oversized_content_metadata_before_drive_con
 
     assert!(matches!(
         apply_result,
-        Err(NotesProductError::Validation(_))
+        Err(CanvasProductError::Validation(_))
     ));
     assert_eq!(drive.update_count("page-001").await, drive_update_count);
 }
@@ -4422,8 +4422,8 @@ async fn stale_ai_suggestion_apply_requires_current_drive_version() {
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4536,7 +4536,7 @@ async fn stale_ai_suggestion_apply_requires_current_drive_version() {
             create_checkpoint: true,
         })
         .await;
-    assert!(matches!(apply_result, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(apply_result, Err(CanvasProductError::Conflict(_))));
     assert_eq!(drive.update_count(&page.id).await, drive_update_count);
 
     let still_accepted = service
@@ -4575,8 +4575,8 @@ async fn ai_suggestion_apply_does_not_advance_canvas_pointer_when_suggestion_sta
         .expect("canvas sqlite schema should install");
 
     let drive = RejectSuggestionDuringDriveUpdatePort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool.clone()), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool.clone()), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4705,8 +4705,8 @@ async fn ai_suggestion_apply_rejects_drive_snapshot_that_does_not_advance_versio
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4807,7 +4807,7 @@ async fn ai_suggestion_apply_rejects_drive_snapshot_that_does_not_advance_versio
             create_checkpoint: true,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let refreshed_page = service
         .get_page(&actor, &page.id)
@@ -4847,8 +4847,8 @@ async fn ai_suggestion_apply_rejects_drive_snapshot_with_unexpected_content_meta
         .expect("canvas sqlite schema should install");
 
     let drive = FakeDrivePageContentPort::default();
-    let service = NotesService::new(SqlNotesStore::new(pool), drive.clone());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(SqlCanvasStore::new(pool), drive.clone());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -4949,7 +4949,7 @@ async fn ai_suggestion_apply_rejects_drive_snapshot_with_unexpected_content_meta
             create_checkpoint: true,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Internal(_))));
+    assert!(matches!(result, Err(CanvasProductError::Internal(_))));
 
     let refreshed_page = service
         .get_page(&actor, &page.id)
@@ -4992,11 +4992,11 @@ async fn proposed_ai_suggestion_cannot_be_applied() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -5087,7 +5087,7 @@ async fn proposed_ai_suggestion_cannot_be_applied() {
             create_checkpoint: true,
         })
         .await;
-    assert!(matches!(apply_result, Err(NotesProductError::Conflict(_))));
+    assert!(matches!(apply_result, Err(CanvasProductError::Conflict(_))));
 }
 
 #[tokio::test]
@@ -5102,11 +5102,11 @@ async fn ai_suggestion_feedback_is_recorded_for_quality_loop() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -5238,8 +5238,8 @@ async fn ai_suggestion_feedback_is_recorded_for_quality_loop() {
 #[tokio::test]
 async fn ai_suggestion_feedback_replays_when_concurrent_insert_wins_race() {
     let repository = ConcurrentAiFeedbackIdempotencyRepository::default();
-    let service = NotesService::new(repository.clone(), FakeDrivePageContentPort::default());
-    let actor = NotesActorContext {
+    let service = CanvasPagesService::new(repository.clone(), FakeDrivePageContentPort::default());
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -5280,11 +5280,11 @@ async fn invalid_ai_suggestion_feedback_type_is_rejected() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -5372,91 +5372,91 @@ async fn invalid_ai_suggestion_feedback_type_is_rejected() {
             feedback_text: None,
         })
         .await;
-    assert!(matches!(result, Err(NotesProductError::Validation(_))));
+    assert!(matches!(result, Err(CanvasProductError::Validation(_))));
 }
 
 #[derive(Clone, Default)]
 struct ConcurrentMetadataRepository;
 
 #[async_trait]
-impl NotesRepository for ConcurrentMetadataRepository {
-    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, NotesProductError> {
+impl CanvasRepository for ConcurrentMetadataRepository {
+    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not insert workspaces")
     }
 
     async fn find_workspace(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not read workspaces")
     }
 
     async fn list_workspaces(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         unreachable!("concurrency test does not list workspaces")
     }
 
-    async fn insert_page(&self, _: NewPage) -> Result<Page, NotesProductError> {
+    async fn insert_page(&self, _: NewPage) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not insert pages")
     }
 
-    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, CanvasProductError> {
         Ok(false)
     }
 
     async fn find_page(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         Ok(test_page(context, page_id, 1))
     }
 
     async fn list_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
         _: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list pages")
     }
 
     async fn list_root_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list root pages")
     }
 
     async fn search_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not search pages")
     }
 
     async fn update_page_metadata(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
         patch: &PageMetadataPatch,
         expected_version: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         if expected_version != Some(2) {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "page version has changed".to_string(),
             ));
         }
@@ -5470,157 +5470,157 @@ impl NotesRepository for ConcurrentMetadataRepository {
 
     async fn update_page_drive_snapshot(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update Drive snapshots")
     }
 
     async fn delete_page(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         unreachable!("concurrency test does not delete pages")
     }
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not use AI jobs")
     }
 
-    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not insert AI jobs")
     }
 
     async fn list_ai_jobs(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not list AI jobs")
     }
 
     async fn find_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not find AI jobs")
     }
 
     async fn cancel_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not cancel AI jobs")
     }
 
     async fn claim_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not claim AI jobs")
     }
 
     async fn list_ai_job_sources(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         unreachable!("concurrency test does not list AI job sources")
     }
 
     async fn fail_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("test fake does not fail AI jobs")
     }
 
     async fn complete_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not complete AI jobs")
     }
 
     async fn list_page_ai_suggestions(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         unreachable!("concurrency test does not list AI suggestions")
     }
 
     async fn find_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not find AI suggestions")
     }
 
     async fn decide_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not decide AI suggestions")
     }
 
     async fn apply_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not apply AI suggestions")
     }
 
     async fn find_ai_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not find AI feedback")
     }
 
-    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, NotesProductError> {
+    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not insert AI feedback")
     }
 
     async fn list_ai_suggestion_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         unreachable!("concurrency test does not list AI feedback")
     }
 }
 
-fn test_page(context: &NotesActorContext, page_id: &str, version: i64) -> Page {
+fn test_page(context: &CanvasActorContext, page_id: &str, version: i64) -> Page {
     Page {
         id: page_id.to_string(),
         tenant_id: context.tenant_id.clone(),
@@ -5657,7 +5657,7 @@ fn test_page(context: &NotesActorContext, page_id: &str, version: i64) -> Page {
     }
 }
 
-fn test_workspace(context: &NotesActorContext, workspace_id: &str) -> Workspace {
+fn test_workspace(context: &CanvasActorContext, workspace_id: &str) -> Workspace {
     Workspace {
         id: workspace_id.to_string(),
         tenant_id: context.tenant_id.clone(),
@@ -5679,8 +5679,8 @@ fn test_workspace(context: &NotesActorContext, workspace_id: &str) -> Workspace 
     }
 }
 
-fn assert_reconciliation_required<T>(result: Result<T, NotesProductError>, expected_prefix: &str) {
-    let Err(NotesProductError::Internal(message)) = result else {
+fn assert_reconciliation_required<T>(result: Result<T, CanvasProductError>, expected_prefix: &str) {
+    let Err(CanvasProductError::Internal(message)) = result else {
         panic!("expected reconciliation-required internal error");
     };
     assert!(
@@ -5703,231 +5703,231 @@ fn assert_reconciliation_required<T>(result: Result<T, NotesProductError>, expec
 struct ConcurrentPageInsertRepository;
 
 #[async_trait]
-impl NotesRepository for ConcurrentPageInsertRepository {
-    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, NotesProductError> {
+impl CanvasRepository for ConcurrentPageInsertRepository {
+    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not insert workspaces")
     }
 
     async fn find_workspace(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         Ok(test_workspace(context, workspace_id))
     }
 
     async fn list_workspaces(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         unreachable!("concurrency test does not list workspaces")
     }
 
-    async fn insert_page(&self, _: NewPage) -> Result<Page, NotesProductError> {
-        Err(NotesProductError::Conflict(
+    async fn insert_page(&self, _: NewPage) -> Result<Page, CanvasProductError> {
+        Err(CanvasProductError::Conflict(
             "insert canvas_page failed".to_string(),
         ))
     }
 
-    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, CanvasProductError> {
         Ok(false)
     }
 
-    async fn find_page(&self, _: &NotesActorContext, _: &str) -> Result<Page, NotesProductError> {
-        Err(NotesProductError::NotFound("page not found".to_string()))
+    async fn find_page(&self, _: &CanvasActorContext, _: &str) -> Result<Page, CanvasProductError> {
+        Err(CanvasProductError::NotFound("page not found".to_string()))
     }
 
     async fn list_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
         _: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list pages")
     }
 
     async fn list_root_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list root pages")
     }
 
     async fn search_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not search pages")
     }
 
     async fn update_page_metadata(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &PageMetadataPatch,
         _: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update metadata")
     }
 
     async fn update_page_drive_snapshot(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update Drive snapshots")
     }
 
     async fn delete_page(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         unreachable!("concurrency test does not delete pages")
     }
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not use AI jobs")
     }
 
-    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not insert AI jobs")
     }
 
     async fn list_ai_jobs(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not list AI jobs")
     }
 
     async fn find_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not find AI jobs")
     }
 
     async fn cancel_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not cancel AI jobs")
     }
 
     async fn claim_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not claim AI jobs")
     }
 
     async fn list_ai_job_sources(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         unreachable!("concurrency test does not list AI job sources")
     }
 
     async fn fail_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("test fake does not fail AI jobs")
     }
 
     async fn complete_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not complete AI jobs")
     }
 
     async fn list_page_ai_suggestions(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         unreachable!("concurrency test does not list AI suggestions")
     }
 
     async fn find_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not find AI suggestions")
     }
 
     async fn decide_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not decide AI suggestions")
     }
 
     async fn apply_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not apply AI suggestions")
     }
 
     async fn find_ai_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not find AI feedback")
     }
 
-    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, NotesProductError> {
+    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not insert AI feedback")
     }
 
     async fn list_ai_suggestion_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         unreachable!("concurrency test does not list AI feedback")
     }
 }
@@ -5953,244 +5953,244 @@ impl ConcurrentAiJobIdempotencyRepository {
 struct PanicOnAiJobTargetRepository;
 
 #[async_trait]
-impl NotesRepository for PanicOnAiJobTargetRepository {
-    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, NotesProductError> {
+impl CanvasRepository for PanicOnAiJobTargetRepository {
+    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, CanvasProductError> {
         unreachable!("target validation should run before workspace insert")
     }
 
     async fn find_workspace(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         unreachable!("target validation should run before workspace read")
     }
 
     async fn list_workspaces(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         unreachable!("target validation should run before workspace list")
     }
 
-    async fn insert_page(&self, _: NewPage) -> Result<Page, NotesProductError> {
+    async fn insert_page(&self, _: NewPage) -> Result<Page, CanvasProductError> {
         unreachable!("target validation should run before page insert")
     }
 
-    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, CanvasProductError> {
         unreachable!("target validation should run before page reservation check")
     }
 
-    async fn find_page(&self, _: &NotesActorContext, _: &str) -> Result<Page, NotesProductError> {
+    async fn find_page(&self, _: &CanvasActorContext, _: &str) -> Result<Page, CanvasProductError> {
         unreachable!("target validation should run before page read")
     }
 
     async fn list_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
         _: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("target validation should run before page list")
     }
 
     async fn list_root_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("target validation should run before root page list")
     }
 
     async fn search_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("target validation should run before search")
     }
 
     async fn update_page_metadata(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &PageMetadataPatch,
         _: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("target validation should run before metadata update")
     }
 
     async fn update_page_drive_snapshot(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("target validation should run before Drive pointer update")
     }
 
     async fn delete_page(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         unreachable!("target validation should run before page delete")
     }
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         unreachable!("target validation should run before AI idempotency read")
     }
 
-    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, CanvasProductError> {
         unreachable!("target validation should run before AI job insert")
     }
 
     async fn list_ai_jobs(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         unreachable!("target validation should run before AI job list")
     }
 
     async fn find_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("target validation should run before AI job read")
     }
 
     async fn cancel_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("target validation should run before AI job cancel")
     }
 
     async fn claim_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("target validation should run before AI job claim")
     }
 
     async fn list_ai_job_sources(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         unreachable!("target validation should run before AI job source list")
     }
 
     async fn fail_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("test fake does not fail AI jobs")
     }
 
     async fn complete_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("target validation should run before AI job completion")
     }
 
     async fn list_page_ai_suggestions(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         unreachable!("target validation should run before AI suggestion list")
     }
 
     async fn find_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("target validation should run before AI suggestion read")
     }
 
     async fn decide_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("target validation should run before AI suggestion decision")
     }
 
     async fn apply_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("target validation should run before AI suggestion apply")
     }
 
     async fn find_ai_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("target validation should run before AI feedback read")
     }
 
-    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, NotesProductError> {
+    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("target validation should run before AI feedback insert")
     }
 
     async fn list_ai_suggestion_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         unreachable!("target validation should run before AI feedback list")
     }
 }
 
 #[async_trait]
-impl NotesRepository for ConcurrentAiJobIdempotencyRepository {
-    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, NotesProductError> {
+impl CanvasRepository for ConcurrentAiJobIdempotencyRepository {
+    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not insert workspaces")
     }
 
     async fn find_workspace(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         Ok(Workspace {
             id: workspace_id.to_string(),
             tenant_id: context.tenant_id.clone(),
@@ -6214,98 +6214,98 @@ impl NotesRepository for ConcurrentAiJobIdempotencyRepository {
 
     async fn list_workspaces(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         unreachable!("concurrency test does not list workspaces")
     }
 
-    async fn insert_page(&self, _: NewPage) -> Result<Page, NotesProductError> {
+    async fn insert_page(&self, _: NewPage) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not insert pages")
     }
 
-    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, CanvasProductError> {
         Ok(false)
     }
 
     async fn find_page(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         Ok(test_page(context, page_id, 1))
     }
 
     async fn list_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
         _: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list pages")
     }
 
     async fn list_root_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list root pages")
     }
 
     async fn search_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not search pages")
     }
 
     async fn update_page_metadata(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &PageMetadataPatch,
         _: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update metadata")
     }
 
     async fn update_page_drive_snapshot(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update Drive snapshots")
     }
 
     async fn delete_page(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         unreachable!("concurrency test does not delete pages")
     }
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         self.find_attempts.fetch_add(1, Ordering::SeqCst);
         Ok(self.inserted_job.lock().await.clone())
     }
 
-    async fn insert_ai_job(&self, job: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, job: NewAiJob) -> Result<AiJob, CanvasProductError> {
         self.insert_attempts.fetch_add(1, Ordering::SeqCst);
         let inserted = AiJob {
             id: job.id,
@@ -6325,129 +6325,129 @@ impl NotesRepository for ConcurrentAiJobIdempotencyRepository {
             created_at: "2026-06-08T00:00:00Z".to_string(),
         };
         self.inserted_job.lock().await.replace(inserted);
-        Err(NotesProductError::Conflict(
+        Err(CanvasProductError::Conflict(
             "insert canvas_ai_job failed".to_string(),
         ))
     }
 
     async fn list_ai_jobs(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not list AI jobs")
     }
 
     async fn find_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not find AI jobs")
     }
 
     async fn cancel_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not cancel AI jobs")
     }
 
     async fn claim_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not claim AI jobs")
     }
 
     async fn list_ai_job_sources(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         unreachable!("concurrency test does not list AI job sources")
     }
 
     async fn fail_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("test fake does not fail AI jobs")
     }
 
     async fn complete_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not complete AI jobs")
     }
 
     async fn list_page_ai_suggestions(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         unreachable!("concurrency test does not list AI suggestions")
     }
 
     async fn find_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not find AI suggestions")
     }
 
     async fn decide_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not decide AI suggestions")
     }
 
     async fn apply_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not apply AI suggestions")
     }
 
     async fn find_ai_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not find AI feedback")
     }
 
-    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, NotesProductError> {
+    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not insert AI feedback")
     }
 
     async fn list_ai_suggestion_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         unreachable!("concurrency test does not list AI feedback")
     }
 }
@@ -6470,187 +6470,187 @@ impl ConcurrentAiFeedbackIdempotencyRepository {
 }
 
 #[async_trait]
-impl NotesRepository for ConcurrentAiFeedbackIdempotencyRepository {
-    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, NotesProductError> {
+impl CanvasRepository for ConcurrentAiFeedbackIdempotencyRepository {
+    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not insert workspaces")
     }
 
     async fn find_workspace(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not read workspaces")
     }
 
     async fn list_workspaces(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         unreachable!("concurrency test does not list workspaces")
     }
 
-    async fn insert_page(&self, _: NewPage) -> Result<Page, NotesProductError> {
+    async fn insert_page(&self, _: NewPage) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not insert pages")
     }
 
-    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, CanvasProductError> {
         Ok(false)
     }
 
-    async fn find_page(&self, _: &NotesActorContext, _: &str) -> Result<Page, NotesProductError> {
+    async fn find_page(&self, _: &CanvasActorContext, _: &str) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not read pages")
     }
 
     async fn list_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
         _: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list pages")
     }
 
     async fn list_root_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list root pages")
     }
 
     async fn search_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not search pages")
     }
 
     async fn update_page_metadata(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &PageMetadataPatch,
         _: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update metadata")
     }
 
     async fn update_page_drive_snapshot(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update Drive snapshots")
     }
 
     async fn delete_page(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         unreachable!("concurrency test does not delete pages")
     }
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not use AI job idempotency")
     }
 
-    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not insert AI jobs")
     }
 
     async fn list_ai_jobs(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not list AI jobs")
     }
 
     async fn find_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not find AI jobs")
     }
 
     async fn cancel_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not cancel AI jobs")
     }
 
     async fn claim_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not claim AI jobs")
     }
 
     async fn list_ai_job_sources(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         unreachable!("concurrency test does not list AI job sources")
     }
 
     async fn fail_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("test fake does not fail AI jobs")
     }
 
     async fn complete_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not complete AI jobs")
     }
 
     async fn list_page_ai_suggestions(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         unreachable!("concurrency test does not list AI suggestions")
     }
 
     async fn find_ai_suggestion(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_suggestion_id: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         Ok(AiSuggestion {
             id: ai_suggestion_id.to_string(),
             tenant_id: context.tenant_id.clone(),
@@ -6671,42 +6671,42 @@ impl NotesRepository for ConcurrentAiFeedbackIdempotencyRepository {
 
     async fn decide_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not decide AI suggestions")
     }
 
     async fn apply_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not apply AI suggestions")
     }
 
     async fn find_ai_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         ai_feedback_id: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         self.find_feedback_attempts.fetch_add(1, Ordering::SeqCst);
         self.inserted_feedback
             .lock()
             .await
             .clone()
             .filter(|feedback| feedback.id == ai_feedback_id)
-            .ok_or_else(|| NotesProductError::NotFound("AI feedback not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("AI feedback not found".to_string()))
     }
 
     async fn insert_ai_feedback(
         &self,
         feedback: NewAiFeedback,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         self.insert_feedback_attempts.fetch_add(1, Ordering::SeqCst);
         self.inserted_feedback.lock().await.replace(AiFeedback {
             id: feedback.id,
@@ -6720,18 +6720,18 @@ impl NotesRepository for ConcurrentAiFeedbackIdempotencyRepository {
             created_by: feedback.context.operator_id,
             created_at: "2026-06-08T00:00:00Z".to_string(),
         });
-        Err(NotesProductError::Conflict(
+        Err(CanvasProductError::Conflict(
             "insert canvas_ai_feedback failed".to_string(),
         ))
     }
 
     async fn list_ai_suggestion_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         unreachable!("concurrency test does not list AI feedback")
     }
 }
@@ -6740,94 +6740,94 @@ impl NotesRepository for ConcurrentAiFeedbackIdempotencyRepository {
 struct ConcurrentDriveSnapshotRepository;
 
 #[async_trait]
-impl NotesRepository for ConcurrentDriveSnapshotRepository {
-    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, NotesProductError> {
+impl CanvasRepository for ConcurrentDriveSnapshotRepository {
+    async fn insert_workspace(&self, _: NewWorkspace) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not insert workspaces")
     }
 
     async fn find_workspace(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         unreachable!("concurrency test does not read workspaces")
     }
 
     async fn list_workspaces(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Workspace>, NotesProductError> {
+    ) -> Result<Vec<Workspace>, CanvasProductError> {
         unreachable!("concurrency test does not list workspaces")
     }
 
-    async fn insert_page(&self, _: NewPage) -> Result<Page, NotesProductError> {
+    async fn insert_page(&self, _: NewPage) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not insert pages")
     }
 
-    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, NotesProductError> {
+    async fn page_id_is_reserved(&self, _: &str) -> Result<bool, CanvasProductError> {
         Ok(false)
     }
 
     async fn find_page(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         Ok(test_page(context, page_id, 1))
     }
 
     async fn list_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
         _: Option<&str>,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list pages")
     }
 
     async fn list_root_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not list root pages")
     }
 
     async fn search_pages(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<Page>, NotesProductError> {
+    ) -> Result<Vec<Page>, CanvasProductError> {
         unreachable!("concurrency test does not search pages")
     }
 
     async fn update_page_metadata(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &PageMetadataPatch,
         _: Option<i64>,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         unreachable!("concurrency test does not update metadata")
     }
 
     async fn update_page_drive_snapshot(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &DrivePageContentSnapshot,
         expected_current_drive_version_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         if expected_current_drive_version_id != "drive-version-page-001-v2" {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "page Drive version has changed".to_string(),
             ));
         }
@@ -6836,142 +6836,142 @@ impl NotesRepository for ConcurrentDriveSnapshotRepository {
 
     async fn delete_page(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         unreachable!("concurrency test does not delete pages")
     }
 
     async fn find_ai_job_by_idempotency_key(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Option<AiJob>, NotesProductError> {
+    ) -> Result<Option<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not use AI jobs")
     }
 
-    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, NotesProductError> {
+    async fn insert_ai_job(&self, _: NewAiJob) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not insert AI jobs")
     }
 
     async fn list_ai_jobs(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: Option<&str>,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiJob>, NotesProductError> {
+    ) -> Result<Vec<AiJob>, CanvasProductError> {
         unreachable!("concurrency test does not list AI jobs")
     }
 
     async fn find_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not find AI jobs")
     }
 
     async fn cancel_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not cancel AI jobs")
     }
 
     async fn claim_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not claim AI jobs")
     }
 
     async fn list_ai_job_sources(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<Vec<AiJobSource>, NotesProductError> {
+    ) -> Result<Vec<AiJobSource>, CanvasProductError> {
         unreachable!("concurrency test does not list AI job sources")
     }
 
     async fn fail_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("test fake does not fail AI jobs")
     }
 
     async fn complete_ai_job(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: Vec<NewAiSuggestion>,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         unreachable!("concurrency test does not complete AI jobs")
     }
 
     async fn list_page_ai_suggestions(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiSuggestion>, NotesProductError> {
+    ) -> Result<Vec<AiSuggestion>, CanvasProductError> {
         unreachable!("concurrency test does not list AI suggestions")
     }
 
     async fn find_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not find AI suggestions")
     }
 
     async fn decide_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not decide AI suggestions")
     }
 
     async fn apply_ai_suggestion(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: &str,
         _: &DrivePageContentSnapshot,
         _: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         unreachable!("concurrency test does not apply AI suggestions")
     }
 
     async fn find_ai_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not find AI feedback")
     }
 
-    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, NotesProductError> {
+    async fn insert_ai_feedback(&self, _: NewAiFeedback) -> Result<AiFeedback, CanvasProductError> {
         unreachable!("concurrency test does not insert AI feedback")
     }
 
     async fn list_ai_suggestion_feedback(
         &self,
-        _: &NotesActorContext,
+        _: &CanvasActorContext,
         _: &str,
         _: i64,
         _: i64,
-    ) -> Result<Vec<AiFeedback>, NotesProductError> {
+    ) -> Result<Vec<AiFeedback>, CanvasProductError> {
         unreachable!("concurrency test does not list AI feedback")
     }
 }
@@ -7093,7 +7093,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn create_page_content(
         &self,
         command: CreateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         {
             let mut create_counts = self.create_counts.lock().await;
             let count = create_counts.entry(command.page_id.clone()).or_insert(0);
@@ -7140,7 +7140,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn update_page_content(
         &self,
         command: UpdateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         *self.last_update_request.lock().await = Some(command.clone());
         {
             let mut update_counts = self.update_counts.lock().await;
@@ -7200,7 +7200,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn restore_page_content_version(
         &self,
         command: RestoreDrivePageContentVersionCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         *self.last_restore_request.lock().await = Some(command.clone());
         let source = self
             .versions
@@ -7214,7 +7214,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
                     .cloned()
             })
             .ok_or_else(|| {
-                sdkwork_canvas_pages_service::error::NotesProductError::NotFound(
+                sdkwork_canvas_pages_service::error::CanvasProductError::NotFound(
                     "page content version not found".to_string(),
                 )
             })?;
@@ -7258,7 +7258,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn read_page_content(
         &self,
         command: ReadDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let mut snapshot = self
             .records
             .lock()
@@ -7266,7 +7266,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
             .get(&command.page_id)
             .cloned()
             .ok_or_else(|| {
-                sdkwork_canvas_pages_service::error::NotesProductError::NotFound(
+                sdkwork_canvas_pages_service::error::CanvasProductError::NotFound(
                     "page content not found".to_string(),
                 )
             })?;
@@ -7280,7 +7280,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn list_page_content_versions(
         &self,
         command: ListDrivePageContentVersionsCommand,
-    ) -> Result<DriveVersionPage, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DriveVersionPage, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let current = self
             .records
             .lock()
@@ -7288,7 +7288,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
             .get(&command.page_id)
             .cloned()
             .ok_or_else(|| {
-                sdkwork_canvas_pages_service::error::NotesProductError::NotFound(
+                sdkwork_canvas_pages_service::error::CanvasProductError::NotFound(
                     "page content not found".to_string(),
                 )
             })?;
@@ -7371,14 +7371,14 @@ impl DrivePageContentPort for RejectSuggestionDuringDriveUpdatePort {
     async fn create_page_content(
         &self,
         command: CreateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         self.inner.create_page_content(command).await
     }
 
     async fn update_page_content(
         &self,
         command: UpdateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let snapshot = self.inner.update_page_content(command).await?;
         let reject_target = self.reject_during_next_update.lock().await.take();
         if let Some((pool, suggestion_id)) = reject_target {
@@ -7398,21 +7398,21 @@ impl DrivePageContentPort for RejectSuggestionDuringDriveUpdatePort {
     async fn read_page_content(
         &self,
         command: ReadDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         self.inner.read_page_content(command).await
     }
 
     async fn restore_page_content_version(
         &self,
         command: RestoreDrivePageContentVersionCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         self.inner.restore_page_content_version(command).await
     }
 
     async fn list_page_content_versions(
         &self,
         command: ListDrivePageContentVersionsCommand,
-    ) -> Result<DriveVersionPage, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DriveVersionPage, sdkwork_canvas_pages_service::error::CanvasProductError> {
         self.inner.list_page_content_versions(command).await
     }
 }

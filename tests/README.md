@@ -1,12 +1,18 @@
-# tests/
+# Tests
 
-Cross-cutting verification entry for SDKWork Canvas.
+Test assets, fixtures, and integration harnesses for the `sdkwork-canvas` repository.
 
-Backend and route crate tests live next to their crates. Frontend contract tests live under `sdkwork-canvas-pc-react/scripts/`. Root verification commands:
+Authority: `../sdkwork-specs/TEST_SPEC.md`.
 
-```powershell
-pnpm verify
-node --test scripts/verify-canvas-standard-architecture.test.mjs
-node --test scripts/verify-canvas-rust-service-skeleton.test.mjs
-node --test scripts/verify-canvas-contract-foundation.test.mjs
-```
+## Structure
+
+- `contract/`: contract tests (API envelope, database framework, SDK generation).
+- `integration/`: integration tests across crates and services.
+- `e2e/`: end-to-end tests for the full application stack.
+- `fixtures/`: shared test fixtures.
+
+## Rules
+
+- Contract tests, SDK generation tests, module tests, security tests, and parity tests follow `TEST_SPEC.md`.
+- Rust crate tests live in each crate's `tests/` directory.
+- Frontend tests live in each package's `tests/` directory or alongside source files.

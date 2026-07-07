@@ -4,16 +4,16 @@ use http::{Method, Request, StatusCode};
 use sdkwork_canvas_pages_service::domain::{
     ClaimAiJobCommand, CompleteAiJobCommand, CompleteAiSuggestionInput, CreateAiJobCommand,
     CreatePageCommand, CreateWorkspaceCommand, DrivePageContentSnapshot, DriveVersionPage,
-    DriveVersionSummary, NotesActorContext, PageInfo, PageKind,
+    DriveVersionSummary, CanvasActorContext, PageInfo, PageKind,
 };
 use sdkwork_canvas_pages_repository_sqlx::install_sqlite_schema;
-use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlNotesStore;
+use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlCanvasStore;
 use sdkwork_canvas_pages_service::ports::{
     CreateDrivePageContentCommand, DrivePageContentPort, ListDrivePageContentVersionsCommand,
     ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
     UpdateDrivePageContentCommand,
 };
-use sdkwork_canvas_pages_service::service::NotesService;
+use sdkwork_canvas_pages_service::service::CanvasPagesService;
 use sdkwork_routes_canvas_app_api::routes::build_router;
 use sdkwork_routes_canvas_app_api::wrap_router_with_dev_web_framework;
 use serde_json::json;
@@ -35,8 +35,8 @@ async fn app_api_routes_create_page_and_update_drive_backed_content() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     let app = wrap_router_with_dev_web_framework(build_router(service));
@@ -485,8 +485,8 @@ async fn app_api_routes_remote_apply_updates_page_metadata_and_archives_page() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     let app = wrap_router_with_dev_web_framework(build_router(service));
@@ -654,8 +654,8 @@ async fn app_api_routes_update_content_preserves_existing_content_metadata_when_
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     let app = wrap_router_with_dev_web_framework(build_router(service));
@@ -756,8 +756,8 @@ async fn app_api_routes_list_page_ai_suggestions() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     seed_completed_ai_suggestion(&service).await;
@@ -808,8 +808,8 @@ async fn app_api_routes_create_ai_suggestion_feedback() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     seed_completed_ai_suggestion(&service).await;
@@ -865,8 +865,8 @@ async fn app_api_routes_accept_and_reject_ai_suggestions() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     seed_two_completed_ai_suggestions(&service).await;
@@ -957,8 +957,8 @@ async fn app_api_routes_apply_accepted_ai_suggestion() {
         .await
         .expect("canvas sqlite schema should install");
 
-    let service = NotesService::new(
-        SqlNotesStore::new(pool),
+    let service = CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
         FakeDrivePageContentPort::default(),
     );
     seed_applicable_ai_suggestion(&service).await;
@@ -1020,9 +1020,9 @@ async fn app_api_routes_apply_accepted_ai_suggestion() {
 }
 
 async fn seed_completed_ai_suggestion(
-    service: &NotesService<SqlNotesStore, FakeDrivePageContentPort>,
+    service: &CanvasPagesService<SqlCanvasStore, FakeDrivePageContentPort>,
 ) {
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1093,9 +1093,9 @@ async fn seed_completed_ai_suggestion(
 }
 
 async fn seed_applicable_ai_suggestion(
-    service: &NotesService<SqlNotesStore, FakeDrivePageContentPort>,
+    service: &CanvasPagesService<SqlCanvasStore, FakeDrivePageContentPort>,
 ) {
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1175,9 +1175,9 @@ async fn seed_applicable_ai_suggestion(
 }
 
 async fn seed_two_completed_ai_suggestions(
-    service: &NotesService<SqlNotesStore, FakeDrivePageContentPort>,
+    service: &CanvasPagesService<SqlCanvasStore, FakeDrivePageContentPort>,
 ) {
-    let actor = NotesActorContext {
+    let actor = CanvasActorContext {
         tenant_id: "100001".to_string(),
         organization_id: "0".to_string(),
         operator_id: "30".to_string(),
@@ -1316,7 +1316,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn create_page_content(
         &self,
         command: CreateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let snapshot = DrivePageContentSnapshot {
             drive_space_id: command.drive_space_id.clone(),
             drive_node_id: format!("drive-node-{}", command.page_id),
@@ -1350,7 +1350,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn update_page_content(
         &self,
         command: UpdateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let snapshot = DrivePageContentSnapshot {
             drive_space_id: command.drive_space_id.clone(),
             drive_node_id: command.drive_node_id.clone(),
@@ -1381,14 +1381,14 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn read_page_content(
         &self,
         command: ReadDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         self.records
             .lock()
             .await
             .get(&command.page_id)
             .cloned()
             .ok_or_else(|| {
-                sdkwork_canvas_pages_service::error::NotesProductError::NotFound(
+                sdkwork_canvas_pages_service::error::CanvasProductError::NotFound(
                     "page content not found".to_string(),
                 )
             })
@@ -1397,7 +1397,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn restore_page_content_version(
         &self,
         command: RestoreDrivePageContentVersionCommand,
-    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let source = self
             .versions
             .lock()
@@ -1410,7 +1410,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
                     .cloned()
             })
             .ok_or_else(|| {
-                sdkwork_canvas_pages_service::error::NotesProductError::NotFound(
+                sdkwork_canvas_pages_service::error::CanvasProductError::NotFound(
                     "page content version not found".to_string(),
                 )
             })?;
@@ -1446,7 +1446,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
     async fn list_page_content_versions(
         &self,
         command: ListDrivePageContentVersionsCommand,
-    ) -> Result<DriveVersionPage, sdkwork_canvas_pages_service::error::NotesProductError> {
+    ) -> Result<DriveVersionPage, sdkwork_canvas_pages_service::error::CanvasProductError> {
         let current = self
             .records
             .lock()
@@ -1454,7 +1454,7 @@ impl DrivePageContentPort for FakeDrivePageContentPort {
             .get(&command.page_id)
             .cloned()
             .ok_or_else(|| {
-                sdkwork_canvas_pages_service::error::NotesProductError::NotFound(
+                sdkwork_canvas_pages_service::error::CanvasProductError::NotFound(
                     "page content not found".to_string(),
                 )
             })?;

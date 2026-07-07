@@ -61,7 +61,7 @@ async function walk(relativePath) {
   return files;
 }
 
-test('declares root Rust workspace service and app-api route crates for Notes runtime phases', async () => {
+test('declares root Rust workspace service and app-api route crates for Canvas runtime', async () => {
   assert.equal(await exists('Cargo.toml'), true, 'root Cargo.toml should exist');
 
   const cargo = await read('Cargo.toml');
@@ -71,7 +71,7 @@ test('declares root Rust workspace service and app-api route crates for Notes ru
   assert.match(cargo, /"crates\/sdkwork-routes-canvas-app-api"/);
   assert.match(cargo, /"crates\/sdkwork-routes-canvas-backend-api"/);
   assert.doesNotMatch(cargo, /packages\/native-rust/);
-  assert.doesNotMatch(cargo, /sdkwork-routes-canvas/);
+  assert.doesNotMatch(cargo, /sdkwork-routes-notes/);
 
   const productCargo = await read('crates/sdkwork-canvas-pages-service/Cargo.toml');
   assert.match(productCargo, /name\s*=\s*"sdkwork-canvas-pages-service"/);
@@ -88,7 +88,7 @@ test('declares root Rust workspace service and app-api route crates for Notes ru
   assert.match(backendApiCargo, /name\s*=\s*"sdkwork_routes_canvas_backend_api"/);
 });
 
-test('does not create generated SDK transport output inside Notes SDK families', async () => {
+test('does not create generated SDK transport output inside Canvas SDK families', async () => {
   const generatedTransportRoots = [
     'sdks/sdkwork-canvas-sdk/generated/server-openapi',
     'sdks/sdkwork-canvas-app-sdk/generated/server-openapi',
@@ -129,7 +129,7 @@ test('declares component specs for new Rust service crates', async () => {
   }
 });
 
-test('declares a route manifest artifact aligned with the Notes App OpenAPI authority', async () => {
+test('declares a route manifest artifact aligned with the Canvas App OpenAPI authority', async () => {
   const manifestPath = 'sdks/_route-manifests/app-api/sdkwork-routes-canvas-app-api.route-manifest.json';
   assert.equal(await exists(manifestPath), true, `${manifestPath} should exist`);
 
@@ -168,8 +168,8 @@ test('declares a route manifest artifact aligned with the Notes App OpenAPI auth
     'GET /app/v3/api/canvas/workspaces',
     'POST /app/v3/api/canvas/workspaces',
     'GET /app/v3/api/canvas/workspaces/{workspaceId}/bootstrap',
-    'GET /app/v3/api/canvas',
-    'POST /app/v3/api/canvas',
+    'GET /app/v3/api/canvas/workspaces/{workspaceId}/boards',
+    'POST /app/v3/api/canvas/workspaces/{workspaceId}/boards',
     'GET /app/v3/api/canvas/boards/{pageId}',
     'PATCH /app/v3/api/canvas/boards/{pageId}',
     'POST /app/v3/api/canvas/boards/{pageId}/remote_apply',
@@ -213,7 +213,7 @@ test('declares a route manifest artifact aligned with the Notes App OpenAPI auth
   }
 });
 
-test('declares a backend route manifest artifact aligned with the Notes Backend OpenAPI authority', async () => {
+test('declares a backend route manifest artifact aligned with the Canvas Backend OpenAPI authority', async () => {
   const manifestPath = 'sdks/_route-manifests/backend-api/sdkwork-routes-canvas-backend-api.route-manifest.json';
   assert.equal(await exists(manifestPath), true, `${manifestPath} should exist`);
 
@@ -287,7 +287,7 @@ test('declares a backend route manifest artifact aligned with the Notes Backend 
   }
 });
 
-test('keeps Notes service source free of Drive-owned storage lifecycle terms', async () => {
+test('keeps Canvas service source free of Drive-owned storage lifecycle terms', async () => {
   const files = [
     ...await walk('services'),
     ...await walk('crates')

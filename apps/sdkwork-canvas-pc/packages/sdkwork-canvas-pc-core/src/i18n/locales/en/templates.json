@@ -1,0 +1,110 @@
+{
+  "templateTitle": "Collection Template",
+  "automaticChaptersPrebuild": "Pre-build chapters",
+  "generateCollectionButton": "Create Collection",
+  "templateFolderBookTitleLabel": "Folder Book Title",
+  "templatePrebuildDesc": "Generates {{count}} recommended chapter outlines. Reorder index values any time.",
+  "selectCreativeArchetypeLabel": "Select Creative Archetype (8 Presets)",
+  "presets": {
+    "prd": {
+      "name": "Product Requirement (PRD)",
+      "description": "Agile Iteration & Specifications",
+      "defaultTitle": "AI Smart Notes System - Product Specifications Handbook",
+      "outlineContent": "# AI Smart Notes System - PRD Outline\n\n> 📌 **Top Level Spec**: Aggregates function definitions, API designs, and UX guidelines.\n> Click \"+\" to append new milestone chapters.\n\n## 🎯 Product Mission\n- **Zero Distraction**: Elegant minimalist writing layout.\n- **Instant Query**: Inline instant searching on canvas and folder systems.",
+      "subChapters": [
+        {
+          "title": "Ch 1: Tech Stack & Lifecycle Hooks",
+          "content": "## Ch 1: Tech Stack & Lifecycle hooks\n\n### 1.1 Specifications\n- **Base Elements**: React 18 + Vite + TypeScript\n- **Design Styles**: Mobile-first Tailwind CSS\n- **Global States**: React Context Store"
+        },
+        {
+          "title": "Ch 2: Flat Folders & Chapter Ledger",
+          "content": "## Ch 2: Flat Folders & Chapter Ledger\n\n### 2.1 Innovation Highlights\nWe designed flat \"Book Collections -> Chapter rows\" to completely bypass unnecessary traditional folder nested depth, allowing users to move up or down index states smoothly."
+        }
+      ]
+    },
+    "story": {
+      "name": "Sci-Fi Novel Series",
+      "description": "Creative worldbuilding & chapter series",
+      "defaultTitle": "Echosphere - Frontier Outpost Chronicles",
+      "outlineContent": "# Echosphere - Concept Saga Plot\n\n> \"When the ancient cosmic node fired, galaxies experienced cold freezes.\"\n\n## 🎭 Worldbuilding core\n- **Main Plotline**: A border outpost deck writer deciphers deep space quantum log signatures.",
+      "subChapters": [
+        {
+          "title": "Chapter 1: The Outpost Log Sig",
+          "content": "## Chapter 1: The Outpost Log Sig\n\n\"Outpost 37 remained completely disconnected for three galactic years.\""
+        }
+      ]
+    },
+    "thesis": {
+      "name": "Academic Paper Draft",
+      "description": "Academic structures & research drafts",
+      "defaultTitle": "A Study on Unobtrusive Front-end Interfaces for Maximum Flow",
+      "outlineContent": "# 🎓 Scientific Thesis Blueprint\n\n## 🔬 Methodology\n- **Quantitative Study**: Comparing distracting items in traditional editors.\n- **Control Experiments**: Evaluating micro-animations on writing speed.",
+      "subChapters": [
+        {
+          "title": "Introduction: UI Noise on Cognitive Fatigue",
+          "content": "## Introduction: UI Noise on Cognitive Fatigue\n\n### 1.1 Premise\nExcessive widgets and floating notification logs heavily decrease writing immersion."
+        }
+      ]
+    },
+    "wiki": {
+      "name": "Team Knowledge Wiki",
+      "description": "Runbooks, guidelines & onboarding canvas",
+      "defaultTitle": "React/TypeScript High-Quality Coding Runbooks",
+      "outlineContent": "# 📘 Developer Standards & Runbooks\n\n## ⚠️ Core Commitments\n- Strictly avoid \"any\" types in production TypeScript components.",
+      "subChapters": [
+        {
+          "title": "Section 1: Docker Compose Fast Launch",
+          "content": "## Section 1: Docker Compose Fast Launch\n\n```bash\ndocker-compose up --build -d\n```"
+        }
+      ]
+    },
+    "weekly": {
+      "name": "Project Sprint Logs",
+      "description": "Meeting minutes, agenda cards & sprints",
+      "defaultTitle": "Technical Dept Q2 Sprint Reviews",
+      "outlineContent": "# 📋 Engineering Sprints Dashboard\n\n- [x] Finished high-density responsive sidebar tabs",
+      "subChapters": [
+        {
+          "title": "Week 24: High-Density UI Review",
+          "content": "## Week 24: High-Density UI Review\n\n- **Consensus**: Default collapse inputs to maximize space."
+        }
+      ]
+    },
+    "health": {
+      "name": "Cardio & Training Diary",
+      "description": "Running plans, nutrition logs & track keys",
+      "defaultTitle": "16-Week Half Marathon Training Ledger",
+      "outlineContent": "# 🏃 16-Week Cardio High Endurance Plan\n\n🏁 **Goal**: Under 100 min half marathon",
+      "subChapters": [
+        {
+          "title": "Phase 1: Safe Base Aerobic Run (W1-4)",
+          "content": "## Phase 1: Safe Base Aerobic Run\n\nMaintain heart rate under 140 bpm."
+        }
+      ]
+    },
+    "recipe": {
+      "name": "Recipes & Wine Reviews",
+      "description": "Sensory logs, ratios & culinary recipes",
+      "defaultTitle": "Italian Culinary & Wine Tasting Logbook",
+      "outlineContent": "# 🍷 Sensory flavor records\n\n## 🍯 Principles\n- Respect seasonal raw ingredients and natural fermentation.",
+      "subChapters": [
+        {
+          "title": "Log 1: Charcoal Steak & Parmigiano Cheese",
+          "content": "## Log 1: Charcoal Steak & Parmigiano Cheese\n\nUse Angus dry aged steak cooked over oak."
+        }
+      ]
+    },
+    "empty": {
+      "name": "Blank Blueprint Folder",
+      "description": "Clean custom outline skeleton",
+      "defaultTitle": "Custom Blank Slate Novel manuscript",
+      "outlineContent": "# General Collection Outline\n\nEnter the main objective or synopsis here.",
+      "subChapters": [
+        {
+          "title": "Chapter 1: Blank Draft",
+          "content": "## Chapter 1: Blank Draft\n\nYour creative journey starts here."
+        }
+      ]
+    }
+  }
+}

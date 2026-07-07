@@ -64,7 +64,7 @@
   "contracts": {
     "publicExports": [
       ".",
-      "SDKWORK_CANVAS_pages_service::service::NotesService",
+      "SDKWORK_CANVAS_pages_service::service::CanvasPagesService",
       "SDKWORK_CANVAS_pages_service::ports::DrivePageContentPort"
     ],
     "runtimeEntrypoints": [],

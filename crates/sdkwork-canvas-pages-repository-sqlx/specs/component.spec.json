@@ -48,7 +48,7 @@
   ],
   "contracts": {
     "publicExports": [
-      "SDKWORK_CANVAS_pages_repository_sqlx::SqlNotesStore",
+      "SDKWORK_CANVAS_pages_repository_sqlx::SqlCanvasStore",
       "SDKWORK_CANVAS_pages_repository_sqlx::install_sqlite_schema"
     ],
     "runtimeEntrypoints": [
@@ -63,7 +63,7 @@
     "configKeys": []
   },
   "integration": {
-    "serviceBoundary": "Implements NotesRepository for sdkwork-canvas-pages-service. Does not own HTTP routes or Drive content lifecycle."
+    "serviceBoundary": "Implements CanvasRepository for sdkwork-canvas-pages-service. Does not own HTTP routes or Drive content lifecycle."
   },
   "verification": {
     "commands": [

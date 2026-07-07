@@ -1,0 +1,6 @@
+{
+  "name": "sdkwork-canvas-pc",
+  "description": "Professional Notion-like PC App with WeChat style and AI capabilities",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

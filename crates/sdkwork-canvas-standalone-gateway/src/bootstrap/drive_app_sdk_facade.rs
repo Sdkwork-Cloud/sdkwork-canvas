@@ -11,7 +11,7 @@ use sdkwork_drive_app_sdk_generated_rust::{
 use sdkwork_canvas_pages_service::domain::{
     DrivePageContentSnapshot, DriveVersionPage, DriveVersionSummary, PageInfo,
 };
-use sdkwork_canvas_pages_service::error::NotesProductError;
+use sdkwork_canvas_pages_service::error::CanvasProductError;
 use sdkwork_canvas_pages_service::ports::{
     CreateDrivePageContentCommand, DrivePageContentPort, ListDrivePageContentVersionsCommand,
     ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
@@ -54,7 +54,7 @@ impl DrivePageContentPort for SdkDriveAppFacadePageContentPort {
     async fn create_page_content(
         &self,
         command: CreateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         let body = serialize_page_content(&command.content)?;
         let (node_id, space_id, version) = self
             .create_node_and_upload(
@@ -82,13 +82,13 @@ impl DrivePageContentPort for SdkDriveAppFacadePageContentPort {
     async fn update_page_content(
         &self,
         command: UpdateDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         if let Some(expected) = command.expected_drive_version_id.as_deref() {
             let current = self
                 .latest_file_version(&command.drive_node_id, &command.tenant_id)
                 .await?;
             if current.id != expected {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
@@ -118,7 +118,7 @@ impl DrivePageContentPort for SdkDriveAppFacadePageContentPort {
     async fn read_page_content(
         &self,
         command: ReadDrivePageContentCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         let version = self
             .resolve_version(
                 &command.drive_node_id,
@@ -142,13 +142,13 @@ impl DrivePageContentPort for SdkDriveAppFacadePageContentPort {
     async fn restore_page_content_version(
         &self,
         command: RestoreDrivePageContentVersionCommand,
-    ) -> Result<DrivePageContentSnapshot, NotesProductError> {
+    ) -> Result<DrivePageContentSnapshot, CanvasProductError> {
         if let Some(expected) = command.expected_current_drive_version_id.as_deref() {
             let current = self
                 .latest_file_version(&command.drive_node_id, &command.tenant_id)
                 .await?;
             if current.id != expected {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
@@ -169,7 +169,7 @@ impl DrivePageContentPort for SdkDriveAppFacadePageContentPort {
             .latest_file_version(&command.drive_node_id, &command.tenant_id)
             .await?;
         if after.version_no <= before.version_no {
-            return Err(NotesProductError::Internal(
+            return Err(CanvasProductError::Internal(
                 "Drive restore did not advance node version".to_string(),
             ));
         }
@@ -189,7 +189,7 @@ impl DrivePageContentPort for SdkDriveAppFacadePageContentPort {
     async fn list_page_content_versions(
         &self,
         command: ListDrivePageContentVersionsCommand,
-    ) -> Result<DriveVersionPage, NotesProductError> {
+    ) -> Result<DriveVersionPage, CanvasProductError> {
         let mut items = self
             .list_all_versions(&command.drive_node_id, &command.tenant_id)
             .await?;
@@ -231,7 +231,7 @@ impl SdkDriveAppFacadePageContentPort {
         parent_node_id: Option<&str>,
         content_type: &str,
         body: &[u8],
-    ) -> Result<(String, String, sdkwork_drive_app_sdk_generated_rust::FileVersion), NotesProductError>
+    ) -> Result<(String, String, sdkwork_drive_app_sdk_generated_rust::FileVersion), CanvasProductError>
     {
         let epoch_ms = current_epoch_ms();
         let upload_item_id = format!("canvas-upload-{page_id}-{epoch_ms}");
@@ -297,7 +297,7 @@ impl SdkDriveAppFacadePageContentPort {
         page_id: &str,
         content_type: &str,
         body: &[u8],
-    ) -> Result<sdkwork_drive_app_sdk_generated_rust::FileVersion, NotesProductError> {
+    ) -> Result<sdkwork_drive_app_sdk_generated_rust::FileVersion, CanvasProductError> {
         let epoch_ms = current_epoch_ms();
         let session_id = format!("canvas-session-{page_id}-{epoch_ms}");
         let checksum = sha256_prefixed(body);
@@ -339,7 +339,7 @@ impl SdkDriveAppFacadePageContentPort {
         content_type: &str,
         body: &[u8],
         checksum: &str,
-    ) -> Result<(), NotesProductError> {
+    ) -> Result<(), CanvasProductError> {
         let presigned = self
             .client
             .drive()
@@ -366,11 +366,11 @@ impl SdkDriveAppFacadePageContentPort {
         let response = request
             .send()
             .await
-            .map_err(|error| NotesProductError::Internal(format!("upload Drive object bytes failed: {error}")))?;
+            .map_err(|error| CanvasProductError::Internal(format!("upload Drive object bytes failed: {error}")))?;
         if !response.status().is_success() {
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "upload Drive object bytes failed with status {status}: {body}"
             )));
         }
@@ -423,12 +423,12 @@ impl SdkDriveAppFacadePageContentPort {
         &self,
         node_id: &str,
         _tenant_id: &str,
-    ) -> Result<sdkwork_drive_app_sdk_generated_rust::FileVersion, NotesProductError> {
+    ) -> Result<sdkwork_drive_app_sdk_generated_rust::FileVersion, CanvasProductError> {
         let versions = self.list_all_versions(node_id, _tenant_id).await?;
         versions
             .into_iter()
             .max_by_key(|version| version.version_no)
-            .ok_or_else(|| NotesProductError::NotFound("Drive file version not found".to_string()))
+            .ok_or_else(|| CanvasProductError::NotFound("Drive file version not found".to_string()))
     }
 
     async fn resolve_version(
@@ -436,7 +436,7 @@ impl SdkDriveAppFacadePageContentPort {
         node_id: &str,
         _tenant_id: &str,
         drive_version_id: &str,
-    ) -> Result<sdkwork_drive_app_sdk_generated_rust::FileVersion, NotesProductError> {
+    ) -> Result<sdkwork_drive_app_sdk_generated_rust::FileVersion, CanvasProductError> {
         self.client
             .drive()
             .versions_get(node_id, drive_version_id)
@@ -448,7 +448,7 @@ impl SdkDriveAppFacadePageContentPort {
         &self,
         node_id: &str,
         _tenant_id: &str,
-    ) -> Result<Vec<sdkwork_drive_app_sdk_generated_rust::FileVersion>, NotesProductError> {
+    ) -> Result<Vec<sdkwork_drive_app_sdk_generated_rust::FileVersion>, CanvasProductError> {
         let mut items = Vec::new();
         let mut page_token: Option<String> = None;
         loop {
@@ -473,7 +473,7 @@ impl SdkDriveAppFacadePageContentPort {
         &self,
         _tenant_id: &str,
         node_id: &str,
-    ) -> Result<Value, NotesProductError> {
+    ) -> Result<Value, CanvasProductError> {
         let download = self
             .client
             .drive()
@@ -485,27 +485,27 @@ impl SdkDriveAppFacadePageContentPort {
             .get(&download.download_url)
             .send()
             .await
-            .map_err(|error| NotesProductError::Internal(format!("download Drive content failed: {error}")))?;
+            .map_err(|error| CanvasProductError::Internal(format!("download Drive content failed: {error}")))?;
         if !response.status().is_success() {
             let status = response.status();
             let body = response.text().await.unwrap_or_default();
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "download Drive content failed with status {status}: {body}"
             )));
         }
         let bytes = response
             .bytes()
             .await
-            .map_err(|error| NotesProductError::Internal(format!("read Drive content bytes failed: {error}")))?;
+            .map_err(|error| CanvasProductError::Internal(format!("read Drive content bytes failed: {error}")))?;
         serde_json::from_slice(&bytes).map_err(|error| {
-            NotesProductError::Internal(format!("parse Drive page content json failed: {error}"))
+            CanvasProductError::Internal(format!("parse Drive page content json failed: {error}"))
         })
     }
 }
 
-fn serialize_page_content(content: &Value) -> Result<Vec<u8>, NotesProductError> {
+fn serialize_page_content(content: &Value) -> Result<Vec<u8>, CanvasProductError> {
     serde_json::to_vec(content).map_err(|error| {
-        NotesProductError::Internal(format!("serialize page content failed: {error}"))
+        CanvasProductError::Internal(format!("serialize page content failed: {error}"))
     })
 }
 
@@ -516,7 +516,7 @@ fn build_snapshot(
     content_type: &str,
     content_schema_version: &str,
     content: Value,
-) -> Result<DrivePageContentSnapshot, NotesProductError> {
+) -> Result<DrivePageContentSnapshot, CanvasProductError> {
     snapshot_from_version_and_content(
         drive_space_id,
         drive_node_id,
@@ -534,7 +534,7 @@ fn snapshot_from_version_and_content(
     content_type: &str,
     content_schema_version: &str,
     content: Value,
-) -> Result<DrivePageContentSnapshot, NotesProductError> {
+) -> Result<DrivePageContentSnapshot, CanvasProductError> {
     let (snippet, word_count, task_count) = extract_content_metrics(&content);
     Ok(DrivePageContentSnapshot {
         drive_space_id: drive_space_id.to_string(),
@@ -604,6 +604,6 @@ fn current_epoch_ms() -> i64 {
         .unwrap_or(0)
 }
 
-fn map_drive_error(context: &'static str) -> impl Fn(SdkworkError) -> NotesProductError {
-    move |error| NotesProductError::Internal(format!("{context}: {error}"))
+fn map_drive_error(context: &'static str) -> impl Fn(SdkworkError) -> CanvasProductError {
+    move |error| CanvasProductError::Internal(format!("{context}: {error}"))
 }

@@ -1,62 +1,45 @@
-# sdkwork-canvas
+# SDKWork Canvas
 
 repository-kind: application
 
-SDKWork Canvas is a collaborative visual canvas and page workspace application. It delivers a PC browser/desktop experience through `sdkwork-canvas-pc-react`, a Rust HTTP backend with `sdkwork-web-framework`, relational persistence through `sdkwork-database`, and file lifecycle through `sdkwork-drive`.
+SDKWork Canvas — AI-native visual workspace for collaborative pages, assets, and Drive-backed media. Multi-tenant, multi-surface (PC browser/desktop), integrated with SDKWork platform frameworks.
 
-## Architecture
+## What This Is
 
-| Layer | Technology | Standard |
-| --- | --- | --- |
-| HTTP API | Rust route crates + standalone gateway | `WEB_FRAMEWORK_SPEC.md` |
-| Persistence | PostgreSQL via `sdkwork-database` | `DATABASE_FRAMEWORK_SPEC.md` |
-| File upload | `@sdkwork/drive-app-sdk` / Drive uploader service | `DRIVE_SPEC.md` |
-| Frontend | PC React packages under `sdkwork-canvas-pc-react` | `APP_PC_ARCHITECTURE_SPEC.md` |
-| SDK | `@sdkwork/canvas-app-sdk` composed facade | `SDK_SPEC.md` |
-| Discovery / RPC | Deferred until cross-process gRPC is required | `DISCOVERY_SPEC.md` |
+A canvas workspace application that lets teams create and manage visual page workspaces. Durable bytes (files, assets, versions) are owned by **sdkwork-drive**; Canvas owns workspace metadata, object model, search, sync, and governance.
 
-## Repository layout
+## Documentation Canon
 
-- `apis/` — OpenAPI authorities (`canvas-app-api`, `canvas-backend-api`, `canvas-open-api`)
-- `apps/` — application root index (`apps/README.md`)
-- `crates/` — Rust gateway, routes, services, repositories
-- `database/` — contract, migrations, seeds
-- `deployments/` — `deploy.yaml` profiles
-- `sdks/` — SDK families and generated transports
-- `sdkwork-canvas-pc-react/` — primary PC React + optional Tauri surface
-- `specs/` — `component.spec.json`, `topology.spec.json`
-- `scripts/` — dev orchestration and architecture verifiers
-- `docs/` — product and technical documentation
+- [docs/README.md](docs/README.md) — documentation index
+- [docs/product/prd/PRD.md](docs/product/prd/PRD.md) — product requirements
+- [docs/architecture/tech/TECH_ARCHITECTURE.md](docs/architecture/tech/TECH_ARCHITECTURE.md) — technical architecture
 
-## Development
+## Getting Started
 
 ```bash
 pnpm install
 pnpm dev
-pnpm check
+pnpm build
 pnpm verify
 ```
 
-Database lifecycle:
+## Framework Integration
+
+| Framework | Role |
+| --- | --- |
+| `sdkwork-web-framework` | Mandatory HTTP `*-api` runtime (18-stage interceptor chain) |
+| `sdkwork-database` | Database lifecycle, migrations, drift |
+| `sdkwork-utils` | `@sdkwork/utils` (TS) and `sdkwork-utils-rust` (Rust) |
+| `sdkwork-drive` | All file upload/download (client uploader + server uploader) |
+| `sdkwork-appbase` / `sdkwork-iam` | Login, session, application bootstrap |
+| `sdkwork-discovery` | **Deferred** until cross-process gRPC services exist (ADR-0002) |
+
+## Verification
 
 ```bash
-pnpm db:validate
-pnpm db:bootstrap
+pnpm check
+pnpm verify
+cargo test --workspace
+node ../sdkwork-specs/tools/check-api-response-envelope.mjs --workspace .
+node ../sdkwork-specs/tools/check-database-framework-standard.mjs --root .
 ```
-
-API and SDK:
-
-```bash
-pnpm api:check
-pnpm sdk:generate
-```
-
-## Documentation
-
-- [docs/README.md](docs/README.md)
-- [docs/product/prd/PRD.md](docs/product/prd/PRD.md)
-- [docs/architecture/tech/TECH_ARCHITECTURE.md](docs/architecture/tech/TECH_ARCHITECTURE.md)
-
-## Standards
-
-All work follows `../sdkwork-specs/README.md`. Agent entrypoint: [AGENTS.md](AGENTS.md).

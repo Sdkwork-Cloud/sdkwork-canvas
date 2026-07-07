@@ -2,13 +2,13 @@ use sqlx::any::AnyPoolOptions;
 use sdkwork_database_config::DatabaseConfig;
 
 use sdkwork_canvas_pages_repository_sqlx::install_sqlite_schema;
-use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlNotesStore;
-use sdkwork_canvas_pages_service::service::NotesService;
+use sdkwork_canvas_pages_repository_sqlx::canvas_store::SqlCanvasStore;
+use sdkwork_canvas_pages_service::service::CanvasPagesService;
 
-use super::drive_port::NotesApiDrivePort;
+use super::drive_port::CanvasApiDrivePort;
 
 pub async fn build_canvas_service(
-) -> Result<NotesService<SqlNotesStore, NotesApiDrivePort>, String> {
+) -> Result<CanvasPagesService<SqlCanvasStore, CanvasApiDrivePort>, String> {
     sqlx::any::install_default_drivers();
     let config = DatabaseConfig::from_env("canvas")
         .map_err(|error| format!("resolve Canvas Database config failed: {error}"))?;
@@ -25,8 +25,8 @@ pub async fn build_canvas_service(
         .await
         .map_err(|error| format!("install canvas schema failed: {error}"))?;
 
-    Ok(NotesService::new(
-        SqlNotesStore::new(pool),
-        NotesApiDrivePort::from_env(),
+    Ok(CanvasPagesService::new(
+        SqlCanvasStore::new(pool),
+        CanvasApiDrivePort::from_env(),
     ))
 }

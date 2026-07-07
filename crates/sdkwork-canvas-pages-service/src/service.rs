@@ -4,33 +4,33 @@ use crate::domain::{
     CompleteAiJobCommand, CreateAiFeedbackCommand, CreateAiJobCommand, CreatePageCommand,
     CreateWorkspaceCommand, DriveVersionPage, FailAiJobCommand, ListAiJobsQuery, ListAiSuggestionFeedbackQuery,
     ListPageAiSuggestionsQuery, NewAiFeedback, NewAiJob, NewAiJobSource, NewAiSuggestion, NewPage,
-    NewWorkspace, NotesActorContext, Page, PageContent, PageInfo, PageKind, PageMetadataPatch, PageSummary,
+    NewWorkspace, CanvasActorContext, Page, PageContent, PageInfo, PageKind, PageMetadataPatch, PageSummary,
     PageSummaryPage, RejectAiSuggestionCommand, RemoteApplyConflict, RemoteApplyMutation,
     RemoteApplyPageCommand, RemoteApplyPageResult, RestorePageVersionCommand, SearchResult,
     SearchResultPage, UpdatePageContentCommand, UpdatePageMetadataCommand, Workspace,
     WorkspaceBootstrap, WorkspacePage,
 };
-use crate::error::NotesProductError;
+use crate::error::CanvasProductError;
 use crate::ports::{
     CreateDrivePageContentCommand, DrivePageContentPort, ListDrivePageContentVersionsCommand,
-    NotesRepository, ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
+    CanvasRepository, ReadDrivePageContentCommand, RestoreDrivePageContentVersionCommand,
     UpdateDrivePageContentCommand,
 };
 use sdkwork_utils_rust::string::{is_blank, trim};
 
 #[derive(Clone)]
-pub struct NotesService<R, D>
+pub struct CanvasPagesService<R, D>
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     repository: R,
     drive: D,
 }
 
-impl<R, D> NotesService<R, D>
+impl<R, D> CanvasPagesService<R, D>
 where
-    R: NotesRepository,
+    R: CanvasRepository,
     D: DrivePageContentPort,
 {
     pub fn new(repository: R, drive: D) -> Self {
@@ -40,7 +40,7 @@ where
     pub async fn create_workspace(
         &self,
         command: CreateWorkspaceCommand,
-    ) -> Result<Workspace, NotesProductError> {
+    ) -> Result<Workspace, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let workspace_id = normalize_required_string("workspace id", &command.id)?;
         let owner_subject_type = normalize_owner_subject_type(&command.owner_subject_type)?;
@@ -87,12 +87,12 @@ where
             .await
     }
 
-    pub async fn create_page(&self, command: CreatePageCommand) -> Result<Page, NotesProductError> {
+    pub async fn create_page(&self, command: CreatePageCommand) -> Result<Page, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let page_id = normalize_required_string("page id", &command.id)?;
         let title = normalize_required_string("page title", &command.title)?;
         if title.chars().count() > 200 {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "page title must be at most 200 characters".to_string(),
             ));
         }
@@ -100,7 +100,7 @@ where
         let parent_page_id = normalize_optional_string(command.parent_page_id);
         let folder_drive_node_id = normalize_optional_string(command.folder_drive_node_id);
         if parent_page_id.is_some() && folder_drive_node_id.is_some() {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "parentPageId and folderDriveNodeId cannot both be set".to_string(),
             ));
         }
@@ -109,7 +109,7 @@ where
             normalize_required_string("content schema version", &command.content_schema_version)?;
         validate_page_content_metadata(&content_type, &content_schema_version)?;
         if !command.initial_content.is_object() {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "initialContent must be an object".to_string(),
             ));
         }
@@ -119,23 +119,23 @@ where
             .find_workspace(&context, &workspace_id)
             .await?;
         if self.repository.page_id_is_reserved(&page_id).await? {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "page already exists".to_string(),
             ));
         }
         match self.repository.find_page(&context, &page_id).await {
             Ok(_) => {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page already exists".to_string(),
                 ));
             }
-            Err(NotesProductError::NotFound(_)) => {}
+            Err(CanvasProductError::NotFound(_)) => {}
             Err(error) => return Err(error),
         }
         if let Some(parent_page_id) = parent_page_id.as_deref() {
             let parent_page = self.repository.find_page(&context, parent_page_id).await?;
             if parent_page.workspace_id != workspace.id {
-                return Err(NotesProductError::NotFound(
+                return Err(CanvasProductError::NotFound(
                     "parent page not found in workspace".to_string(),
                 ));
             }
@@ -196,9 +196,9 @@ where
 
     pub async fn get_page(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         let context = normalize_actor_context(context.clone())?;
         let page_id = normalize_required_string("page id", page_id)?;
         self.repository.find_page(&context, &page_id).await
@@ -207,7 +207,7 @@ where
     pub async fn list_workspaces(
         &self,
         query: crate::domain::ListWorkspacesQuery,
-    ) -> Result<WorkspacePage, NotesProductError> {
+    ) -> Result<WorkspacePage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let page = normalize_page(query.page)?;
         let page_size = normalize_page_size(query.page_size)?;
@@ -223,7 +223,7 @@ where
     pub async fn list_pages(
         &self,
         query: crate::domain::ListPagesQuery,
-    ) -> Result<PageSummaryPage, NotesProductError> {
+    ) -> Result<PageSummaryPage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let workspace_id = normalize_required_string("workspace id", &query.workspace_id)?;
         let page = normalize_page(query.page)?;
@@ -246,9 +246,9 @@ where
 
     pub async fn get_workspace_bootstrap(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
-    ) -> Result<WorkspaceBootstrap, NotesProductError> {
+    ) -> Result<WorkspaceBootstrap, CanvasProductError> {
         let context = normalize_actor_context(context.clone())?;
         let workspace_id = normalize_required_string("workspace id", workspace_id)?;
         let workspace = self
@@ -275,7 +275,7 @@ where
     pub async fn update_page_metadata(
         &self,
         command: UpdatePageMetadataCommand,
-    ) -> Result<Page, NotesProductError> {
+    ) -> Result<Page, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let page_id = normalize_required_string("page id", &command.page_id)?;
         let current = self.repository.find_page(&context, &page_id).await?;
@@ -285,12 +285,12 @@ where
             let expected_version = normalize_required_string("expectedVersion", expected_version)?
                 .parse::<i64>()
                 .map_err(|_| {
-                    NotesProductError::Validation(
+                    CanvasProductError::Validation(
                         "expectedVersion must be an int64 string".to_string(),
                     )
                 })?;
             if expected_version != current.version {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page version has changed".to_string(),
                 ));
             }
@@ -310,12 +310,12 @@ where
             if let Some(parent_page_id) = parent_page_id.as_deref() {
                 let parent_page = self.repository.find_page(&context, parent_page_id).await?;
                 if parent_page.workspace_id != current.workspace_id {
-                    return Err(NotesProductError::NotFound(
+                    return Err(CanvasProductError::NotFound(
                         "parent page not found in workspace".to_string(),
                     ));
                 }
                 if parent_page_id == page_id {
-                    return Err(NotesProductError::Validation(
+                    return Err(CanvasProductError::Validation(
                         "page cannot be its own parent".to_string(),
                     ));
                 }
@@ -328,7 +328,7 @@ where
             .transpose()?
             .unwrap_or_else(|| current.title.clone());
         if title.chars().count() > 200 {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "page title must be at most 200 characters".to_string(),
             ));
         }
@@ -339,7 +339,7 @@ where
             .transpose()?
             .unwrap_or_else(|| current.archive_status.clone());
         if !matches!(archive_status.as_str(), "active" | "archived") {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "archiveStatus is invalid".to_string(),
             ));
         }
@@ -353,7 +353,7 @@ where
             publish_status.as_str(),
             "private" | "published" | "unlisted"
         ) {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "publishStatus is invalid".to_string(),
             ));
         }
@@ -377,7 +377,7 @@ where
     pub async fn remote_apply_page(
         &self,
         command: RemoteApplyPageCommand,
-    ) -> Result<RemoteApplyPageResult, NotesProductError> {
+    ) -> Result<RemoteApplyPageResult, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let page_id = normalize_required_string("page id", &command.page_id)?;
         let idempotency_key = normalize_required_string("idempotencyKey", &command.idempotency_key)?;
@@ -387,12 +387,12 @@ where
         let operation = normalize_required_string("operation", &command.operation)?;
 
         if page_id != entity_id {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "path page id must match request entityId".to_string(),
             ));
         }
         if entity_type != "note" {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "request entityType must remain note".to_string(),
             ));
         }
@@ -400,7 +400,7 @@ where
 
         let current = match self.repository.find_page(&context, &page_id).await {
             Ok(page) => page,
-            Err(NotesProductError::NotFound(_)) => {
+            Err(CanvasProductError::NotFound(_)) => {
                 return Ok(remote_apply_conflict_result(
                     task_id,
                     command.base_remote_cursor,
@@ -432,7 +432,7 @@ where
                     publish_status,
                 } = command.mutation
                 else {
-                    return Err(NotesProductError::Validation(
+                    return Err(CanvasProductError::Validation(
                         "upsert remote apply requires a patch mutation".to_string(),
                     ));
                 };
@@ -471,7 +471,7 @@ where
             }
             "move" => {
                 let RemoteApplyMutation::Move { target_parent_id } = command.mutation else {
-                    return Err(NotesProductError::Validation(
+                    return Err(CanvasProductError::Validation(
                         "move remote apply requires targetParentId".to_string(),
                     ));
                 };
@@ -515,7 +515,7 @@ where
             }
             "permanent-delete" => {
                 if !matches!(command.mutation, RemoteApplyMutation::PermanentDeleteIntent) {
-                    return Err(NotesProductError::Validation(
+                    return Err(CanvasProductError::Validation(
                         "permanent-delete remote apply requires a permanent-delete intent"
                             .to_string(),
                     ));
@@ -540,7 +540,7 @@ where
                 });
             }
             _ => {
-                return Err(NotesProductError::Validation(format!(
+                return Err(CanvasProductError::Validation(format!(
                     "unsupported remote apply operation \"{operation}\""
                 )));
             }
@@ -558,11 +558,11 @@ where
     pub async fn update_page_content(
         &self,
         command: UpdatePageContentCommand,
-    ) -> Result<PageContent, NotesProductError> {
+    ) -> Result<PageContent, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let page_id = normalize_required_string("page id", &command.page_id)?;
         if !command.content.is_object() {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "content must be an object".to_string(),
             ));
         }
@@ -571,7 +571,7 @@ where
             normalize_optional_string(command.expected_drive_version_id);
         if let Some(expected_drive_version_id) = expected_drive_version_id.as_deref() {
             if page.current_drive_version_id != expected_drive_version_id {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
@@ -654,9 +654,9 @@ where
 
     pub async fn get_page_content(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         page_id: &str,
-    ) -> Result<PageContent, NotesProductError> {
+    ) -> Result<PageContent, CanvasProductError> {
         let context = normalize_actor_context(context.clone())?;
         let page_id = normalize_required_string("page id", page_id)?;
         let page = self.repository.find_page(&context, &page_id).await?;
@@ -707,7 +707,7 @@ where
     pub async fn list_page_versions(
         &self,
         query: crate::domain::ListPageVersionsQuery,
-    ) -> Result<DriveVersionPage, NotesProductError> {
+    ) -> Result<DriveVersionPage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let page_id = normalize_required_string("page id", &query.page_id)?;
         let page_number = normalize_page(query.page)?;
@@ -735,7 +735,7 @@ where
     pub async fn restore_page_version(
         &self,
         command: RestorePageVersionCommand,
-    ) -> Result<PageContent, NotesProductError> {
+    ) -> Result<PageContent, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let page_id = normalize_required_string("page id", &command.page_id)?;
         let drive_version_id =
@@ -747,7 +747,7 @@ where
             expected_current_drive_version_id.as_deref()
         {
             if page.current_drive_version_id != expected_current_drive_version_id {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
@@ -816,7 +816,7 @@ where
     pub async fn query_search(
         &self,
         query: crate::domain::SearchQuery,
-    ) -> Result<SearchResultPage, NotesProductError> {
+    ) -> Result<SearchResultPage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let page = normalize_page(query.page)?;
         let page_size = normalize_page_size(query.page_size)?;
@@ -844,7 +844,7 @@ where
     pub async fn create_ai_job(
         &self,
         command: CreateAiJobCommand,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let workspace_id = normalize_required_string("workspace id", &command.workspace_id)?;
         let idempotency_key =
@@ -863,7 +863,7 @@ where
             .as_ref()
             .is_some_and(|value| value.chars().count() > 8000)
         {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "prompt must be at most 8000 characters".to_string(),
             ));
         }
@@ -871,7 +871,7 @@ where
             .context_policy
             .unwrap_or_else(|| serde_json::json!({}));
         if !context_policy_snapshot.is_object() {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "contextPolicy must be an object".to_string(),
             ));
         }
@@ -894,7 +894,7 @@ where
             if existing.request_payload_hash == request_payload_hash {
                 return Ok(existing);
             }
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "idempotency key was already used for a different AI job request".to_string(),
             ));
         }
@@ -927,7 +927,7 @@ where
             .await
         {
             Ok(job) => Ok(job),
-            Err(NotesProductError::Conflict(message)) => {
+            Err(CanvasProductError::Conflict(message)) => {
                 if let Some(existing) = self
                     .repository
                     .find_ai_job_by_idempotency_key(&context, &idempotency_key)
@@ -937,7 +937,7 @@ where
                         return Ok(existing);
                     }
                 }
-                Err(NotesProductError::Conflict(message))
+                Err(CanvasProductError::Conflict(message))
             }
             Err(error) => Err(error),
         }
@@ -946,7 +946,7 @@ where
     pub async fn list_ai_jobs(
         &self,
         query: ListAiJobsQuery,
-    ) -> Result<AiJobPage, NotesProductError> {
+    ) -> Result<AiJobPage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let page = normalize_page(query.page)?;
         let page_size = normalize_page_size(query.page_size)?;
@@ -966,9 +966,9 @@ where
 
     pub async fn get_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let context = normalize_actor_context(context.clone())?;
         let ai_job_id = normalize_required_string("AI job id", ai_job_id)?;
         self.repository.find_ai_job(&context, &ai_job_id).await
@@ -976,9 +976,9 @@ where
 
     pub async fn cancel_ai_job(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_job_id: &str,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let context = normalize_actor_context(context.clone())?;
         let ai_job_id = normalize_required_string("AI job id", ai_job_id)?;
         self.repository.cancel_ai_job(&context, &ai_job_id).await
@@ -987,7 +987,7 @@ where
     pub async fn claim_ai_job(
         &self,
         command: ClaimAiJobCommand,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_job_id = normalize_required_string("AI job id", &command.ai_job_id)?;
         self.repository.claim_ai_job(&context, &ai_job_id).await
@@ -996,18 +996,18 @@ where
     pub async fn complete_ai_job(
         &self,
         command: CompleteAiJobCommand,
-    ) -> Result<AiJob, NotesProductError> {
+    ) -> Result<AiJob, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_job_id = normalize_required_string("AI job id", &command.ai_job_id)?;
         if command.suggestions.is_empty() {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "suggestions must not be empty".to_string(),
             ));
         }
 
         let job = self.repository.find_ai_job(&context, &ai_job_id).await?;
         if job.status != "running" {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "AI job must be running before completion".to_string(),
             ));
         }
@@ -1020,7 +1020,7 @@ where
         for (index, suggestion) in command.suggestions.into_iter().enumerate() {
             let suggestion_type = normalize_ai_suggestion_type(&suggestion.suggestion_type)?;
             if !suggestion.payload.is_object() {
-                return Err(NotesProductError::Validation(
+                return Err(CanvasProductError::Validation(
                     "suggestion payload must be an object".to_string(),
                 ));
             }
@@ -1030,24 +1030,24 @@ where
                 .filter(|value| !value.is_empty())
                 .or_else(|| page_id_from_ai_job(&job, &sources))
                 .ok_or_else(|| {
-                    NotesProductError::Validation(
+                    CanvasProductError::Validation(
                         "pageId is required for this suggestion".to_string(),
                     )
                 })?;
             let page = self.repository.find_page(&context, &page_id).await?;
             if page.workspace_id != job.workspace_id {
-                return Err(NotesProductError::NotFound(
+                return Err(CanvasProductError::NotFound(
                     "page not found in AI job workspace".to_string(),
                 ));
             }
             let source = source_for_page(&sources, &page_id);
             if has_page_sources(&sources) && source.is_none() {
-                return Err(NotesProductError::Validation(
+                return Err(CanvasProductError::Validation(
                     "suggestion pageId must match an AI job page source".to_string(),
                 ));
             }
             let payload_hash = serde_json::to_string(&suggestion.payload).map_err(|error| {
-                NotesProductError::Internal(format!(
+                CanvasProductError::Internal(format!(
                     "serialize AI suggestion payload failed: {error}"
                 ))
             })?;
@@ -1078,7 +1078,7 @@ where
             .await
     }
 
-    pub async fn fail_ai_job(&self, command: FailAiJobCommand) -> Result<AiJob, NotesProductError> {
+    pub async fn fail_ai_job(&self, command: FailAiJobCommand) -> Result<AiJob, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_job_id = normalize_required_string("AI job id", &command.ai_job_id)?;
         let error_code = normalize_required_string("error code", &command.error_code)?;
@@ -1093,7 +1093,7 @@ where
     pub async fn list_page_ai_suggestions(
         &self,
         query: ListPageAiSuggestionsQuery,
-    ) -> Result<AiSuggestionPage, NotesProductError> {
+    ) -> Result<AiSuggestionPage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let page_id = normalize_required_string("page id", &query.page_id)?;
         let page = normalize_page(query.page)?;
@@ -1112,7 +1112,7 @@ where
     pub async fn accept_ai_suggestion(
         &self,
         command: AcceptAiSuggestionCommand,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_suggestion_id =
             normalize_required_string("AI suggestion id", &command.ai_suggestion_id)?;
@@ -1123,7 +1123,7 @@ where
     pub async fn reject_ai_suggestion(
         &self,
         command: RejectAiSuggestionCommand,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_suggestion_id =
             normalize_required_string("AI suggestion id", &command.ai_suggestion_id)?;
@@ -1134,7 +1134,7 @@ where
     pub async fn apply_ai_suggestion(
         &self,
         command: ApplyAiSuggestionCommand,
-    ) -> Result<PageContent, NotesProductError> {
+    ) -> Result<PageContent, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_suggestion_id =
             normalize_required_string("AI suggestion id", &command.ai_suggestion_id)?;
@@ -1151,17 +1151,17 @@ where
             }
             "accepted" => {}
             "proposed" => {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI suggestion must be accepted before apply".to_string(),
                 ));
             }
             "rejected" | "dismissed" => {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI suggestion decision is already terminal".to_string(),
                 ));
             }
             other => {
-                return Err(NotesProductError::Internal(format!(
+                return Err(CanvasProductError::Internal(format!(
                     "invalid persisted AI suggestion status: {other}"
                 )));
             }
@@ -1172,37 +1172,37 @@ where
             .find_page(&context, &suggestion.page_id)
             .await?;
         if page.workspace_id != suggestion.workspace_id {
-            return Err(NotesProductError::NotFound(
+            return Err(CanvasProductError::NotFound(
                 "page not found in AI suggestion workspace".to_string(),
             ));
         }
         if let Some(source_drive_version_id) = suggestion.source_drive_version_id.as_deref() {
             if page.current_drive_version_id != source_drive_version_id {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI suggestion source Drive version is stale".to_string(),
                 ));
             }
         }
         if let Some(source_drive_version_no) = suggestion.source_drive_version_no {
             if page.current_drive_version_no != source_drive_version_no {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "AI suggestion source Drive version is stale".to_string(),
                 ));
             }
         }
         if let Some(expected_drive_version_id) = expected_drive_version_id.as_deref() {
             if page.current_drive_version_id != expected_drive_version_id {
-                return Err(NotesProductError::Conflict(
+                return Err(CanvasProductError::Conflict(
                     "page Drive version has changed".to_string(),
                 ));
             }
         }
 
         let content = suggestion.payload.get("content").ok_or_else(|| {
-            NotesProductError::Validation("suggestion payload content is required".to_string())
+            CanvasProductError::Validation("suggestion payload content is required".to_string())
         })?;
         if !content.is_object() {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "suggestion payload content must be an object".to_string(),
             ));
         }
@@ -1275,7 +1275,7 @@ where
                 )
             })?;
         if applied_suggestion.status != "applied" {
-            return Err(NotesProductError::Conflict(
+            return Err(CanvasProductError::Conflict(
                 "AI suggestion status changed before apply completed".to_string(),
             ));
         }
@@ -1294,7 +1294,7 @@ where
     pub async fn create_ai_feedback(
         &self,
         command: CreateAiFeedbackCommand,
-    ) -> Result<AiFeedback, NotesProductError> {
+    ) -> Result<AiFeedback, CanvasProductError> {
         let context = normalize_actor_context(command.context)?;
         let ai_suggestion_id =
             normalize_required_string("AI suggestion id", &command.ai_suggestion_id)?;
@@ -1307,7 +1307,7 @@ where
             .as_ref()
             .is_some_and(|value| value.chars().count() > 2000)
         {
-            return Err(NotesProductError::Validation(
+            return Err(CanvasProductError::Validation(
                 "feedbackText must be at most 2000 characters".to_string(),
             ));
         }
@@ -1329,7 +1329,7 @@ where
             .await
         {
             Ok(existing) => return Ok(existing),
-            Err(NotesProductError::NotFound(_)) => {}
+            Err(CanvasProductError::NotFound(_)) => {}
             Err(error) => return Err(error),
         }
 
@@ -1347,15 +1347,15 @@ where
             .await
         {
             Ok(feedback) => Ok(feedback),
-            Err(NotesProductError::Conflict(message)) => {
+            Err(CanvasProductError::Conflict(message)) => {
                 match self
                     .repository
                     .find_ai_feedback(&context, &feedback_id)
                     .await
                 {
                     Ok(existing) => Ok(existing),
-                    Err(NotesProductError::NotFound(_)) => {
-                        Err(NotesProductError::Conflict(message))
+                    Err(CanvasProductError::NotFound(_)) => {
+                        Err(CanvasProductError::Conflict(message))
                     }
                     Err(error) => Err(error),
                 }
@@ -1367,7 +1367,7 @@ where
     pub async fn list_ai_suggestion_feedback(
         &self,
         query: ListAiSuggestionFeedbackQuery,
-    ) -> Result<AiFeedbackPage, NotesProductError> {
+    ) -> Result<AiFeedbackPage, CanvasProductError> {
         let context = normalize_actor_context(query.context)?;
         let ai_suggestion_id =
             normalize_required_string("AI suggestion id", &query.ai_suggestion_id)?;
@@ -1388,21 +1388,21 @@ where
 
     async fn ai_job_sources_for_target(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         workspace_id: &str,
         target_type: &str,
         target_id: Option<&str>,
-    ) -> Result<Vec<NewAiJobSource>, NotesProductError> {
+    ) -> Result<Vec<NewAiJobSource>, CanvasProductError> {
         if target_type != "page" {
             return Ok(Vec::new());
         }
 
         let page_id = target_id.ok_or_else(|| {
-            NotesProductError::Validation("targetId is required for this targetType".to_string())
+            CanvasProductError::Validation("targetId is required for this targetType".to_string())
         })?;
         let page = self.repository.find_page(context, page_id).await?;
         if page.workspace_id != workspace_id {
-            return Err(NotesProductError::NotFound(
+            return Err(CanvasProductError::NotFound(
                 "page not found in workspace".to_string(),
             ));
         }
@@ -1432,11 +1432,11 @@ where
 
     async fn decide_ai_suggestion(
         &self,
-        context: &NotesActorContext,
+        context: &CanvasActorContext,
         ai_suggestion_id: &str,
         target_status: &str,
         conflicting_status: &str,
-    ) -> Result<AiSuggestion, NotesProductError> {
+    ) -> Result<AiSuggestion, CanvasProductError> {
         require_non_empty("AI suggestion id", ai_suggestion_id)?;
         let current = self
             .repository
@@ -1452,29 +1452,29 @@ where
                     return Ok(updated);
                 }
                 if updated.status == conflicting_status {
-                    return Err(NotesProductError::Conflict(
+                    return Err(CanvasProductError::Conflict(
                         "AI suggestion decision is already terminal".to_string(),
                     ));
                 }
-                Err(NotesProductError::Conflict(format!(
+                Err(CanvasProductError::Conflict(format!(
                     "AI suggestion status cannot be decided from {}",
                     updated.status
                 )))
             }
             status if status == target_status => Ok(current),
-            status if status == conflicting_status => Err(NotesProductError::Conflict(
+            status if status == conflicting_status => Err(CanvasProductError::Conflict(
                 "AI suggestion decision is already terminal".to_string(),
             )),
-            other => Err(NotesProductError::Conflict(format!(
+            other => Err(CanvasProductError::Conflict(format!(
                 "AI suggestion status cannot be decided from {other}"
             ))),
         }
     }
 }
 
-fn require_non_empty(field: &str, value: &str) -> Result<(), NotesProductError> {
+fn require_non_empty(field: &str, value: &str) -> Result<(), CanvasProductError> {
     if is_blank(Some(value)) {
-        return Err(NotesProductError::Validation(format!(
+        return Err(CanvasProductError::Validation(format!(
             "{field} is required"
         )));
     }
@@ -1508,15 +1508,15 @@ fn chrono_like_timestamp() -> String {
     format!("{}.{:03}Z", duration.as_secs(), duration.subsec_millis())
 }
 
-fn normalize_required_string(field: &str, value: &str) -> Result<String, NotesProductError> {
+fn normalize_required_string(field: &str, value: &str) -> Result<String, CanvasProductError> {
     require_non_empty(field, value)?;
     Ok(trim(value))
 }
 
 fn normalize_actor_context(
-    context: NotesActorContext,
-) -> Result<NotesActorContext, NotesProductError> {
-    Ok(NotesActorContext {
+    context: CanvasActorContext,
+) -> Result<CanvasActorContext, CanvasProductError> {
+    Ok(CanvasActorContext {
         tenant_id: normalize_required_string("tenant id", &context.tenant_id)?,
         organization_id: normalize_required_string("organization id", &context.organization_id)?,
         operator_id: normalize_required_string("operator id", &context.operator_id)?,
@@ -1532,7 +1532,7 @@ fn normalize_optional_string(value: Option<String>) -> Option<String> {
 fn normalize_optional_query<'a>(
     field: &str,
     value: Option<&'a str>,
-) -> Result<Option<&'a str>, NotesProductError> {
+) -> Result<Option<&'a str>, CanvasProductError> {
     let value = value.map(str::trim).filter(|value| !is_blank(Some(value)));
     if let Some(value) = value {
         validate_max_chars(field, value, 200)?;
@@ -1540,9 +1540,9 @@ fn normalize_optional_query<'a>(
     Ok(value)
 }
 
-fn validate_max_chars(field: &str, value: &str, max_chars: usize) -> Result<(), NotesProductError> {
+fn validate_max_chars(field: &str, value: &str, max_chars: usize) -> Result<(), CanvasProductError> {
     if value.chars().count() > max_chars {
-        return Err(NotesProductError::Validation(format!(
+        return Err(CanvasProductError::Validation(format!(
             "{field} must be at most {max_chars} characters"
         )));
     }
@@ -1552,23 +1552,23 @@ fn validate_max_chars(field: &str, value: &str, max_chars: usize) -> Result<(), 
 fn validate_page_content_metadata(
     content_type: &str,
     content_schema_version: &str,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     validate_max_chars("content type", content_type, 255)?;
     validate_max_chars("content schema version", content_schema_version, 32)?;
     Ok(())
 }
 
-fn normalize_owner_subject_type(value: &str) -> Result<String, NotesProductError> {
+fn normalize_owner_subject_type(value: &str) -> Result<String, CanvasProductError> {
     let value = normalize_required_string("owner subject type", value)?;
     if matches!(value.as_str(), "user" | "group" | "organization" | "app") {
         return Ok(value);
     }
-    Err(NotesProductError::Validation(
+    Err(CanvasProductError::Validation(
         "ownerSubjectType is invalid".to_string(),
     ))
 }
 
-fn normalize_ai_job_type(value: &str) -> Result<String, NotesProductError> {
+fn normalize_ai_job_type(value: &str) -> Result<String, CanvasProductError> {
     let value = normalize_required_string("job type", value)?;
     if matches!(
         value.as_str(),
@@ -1576,12 +1576,12 @@ fn normalize_ai_job_type(value: &str) -> Result<String, NotesProductError> {
     ) {
         return Ok(value);
     }
-    Err(NotesProductError::Validation(
+    Err(CanvasProductError::Validation(
         "jobType is invalid".to_string(),
     ))
 }
 
-fn normalize_ai_target_type(value: &str) -> Result<String, NotesProductError> {
+fn normalize_ai_target_type(value: &str) -> Result<String, CanvasProductError> {
     let value = normalize_required_string("target type", value)?;
     if matches!(
         value.as_str(),
@@ -1589,12 +1589,12 @@ fn normalize_ai_target_type(value: &str) -> Result<String, NotesProductError> {
     ) {
         return Ok(value);
     }
-    Err(NotesProductError::Validation(
+    Err(CanvasProductError::Validation(
         "targetType is invalid".to_string(),
     ))
 }
 
-fn normalize_ai_suggestion_type(value: &str) -> Result<String, NotesProductError> {
+fn normalize_ai_suggestion_type(value: &str) -> Result<String, CanvasProductError> {
     let value = normalize_required_string("suggestion type", value)?;
     if matches!(
         value.as_str(),
@@ -1602,12 +1602,12 @@ fn normalize_ai_suggestion_type(value: &str) -> Result<String, NotesProductError
     ) {
         return Ok(value);
     }
-    Err(NotesProductError::Validation(
+    Err(CanvasProductError::Validation(
         "suggestionType is invalid".to_string(),
     ))
 }
 
-fn normalize_ai_feedback_type(value: &str) -> Result<String, NotesProductError> {
+fn normalize_ai_feedback_type(value: &str) -> Result<String, CanvasProductError> {
     let value = normalize_required_string("feedback type", value)?;
     if matches!(
         value.as_str(),
@@ -1615,7 +1615,7 @@ fn normalize_ai_feedback_type(value: &str) -> Result<String, NotesProductError> 
     ) {
         return Ok(value);
     }
-    Err(NotesProductError::Validation(
+    Err(CanvasProductError::Validation(
         "feedbackType is invalid".to_string(),
     ))
 }
@@ -1623,12 +1623,12 @@ fn normalize_ai_feedback_type(value: &str) -> Result<String, NotesProductError> 
 fn optional_payload_string(
     payload: &serde_json::Value,
     field: &str,
-) -> Result<Option<String>, NotesProductError> {
+) -> Result<Option<String>, CanvasProductError> {
     let Some(value) = payload.get(field) else {
         return Ok(None);
     };
     let Some(value) = value.as_str() else {
-        return Err(NotesProductError::Validation(format!(
+        return Err(CanvasProductError::Validation(format!(
             "suggestion payload {field} must be a string"
         )));
     };
@@ -1639,9 +1639,9 @@ fn optional_payload_string(
     Ok(Some(value))
 }
 
-fn validate_ai_target(target_type: &str, target_id: Option<&str>) -> Result<(), NotesProductError> {
+fn validate_ai_target(target_type: &str, target_id: Option<&str>) -> Result<(), CanvasProductError> {
     match target_type {
-        "page" | "collection" if target_id.is_none() => Err(NotesProductError::Validation(
+        "page" | "collection" if target_id.is_none() => Err(CanvasProductError::Validation(
             "targetId is required for this targetType".to_string(),
         )),
         _ => Ok(()),
@@ -1651,7 +1651,7 @@ fn validate_ai_target(target_type: &str, target_id: Option<&str>) -> Result<(), 
 fn validate_drive_snapshot(
     context: &str,
     snapshot: &crate::domain::DrivePageContentSnapshot,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     for (field, value) in [
         ("driveSpaceId", snapshot.drive_space_id.as_str()),
         ("driveNodeId", snapshot.drive_node_id.as_str()),
@@ -1664,28 +1664,28 @@ fn validate_drive_snapshot(
         ),
     ] {
         if is_blank(Some(value)) {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive snapshot from {context} returned blank {field}"
             )));
         }
     }
     if snapshot.drive_version_no < 1 {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned invalid driveVersionNo"
         )));
     }
     if snapshot.content_type.chars().count() > 255 {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned oversized contentType"
         )));
     }
     if snapshot.content_schema_version.chars().count() > 32 {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned oversized contentSchemaVersion"
         )));
     }
     if !snapshot.content.is_object() {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned non-object page content"
         )));
     }
@@ -1694,7 +1694,7 @@ fn validate_drive_snapshot(
         snapshot.drive_space_id, snapshot.drive_node_id
     );
     if snapshot.drive_uri != expected_drive_uri {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned inconsistent driveUri"
         )));
     }
@@ -1707,24 +1707,24 @@ fn validate_drive_snapshot_matches_expected_refs(
     expected_drive_space_id: Option<&str>,
     expected_drive_node_id: Option<&str>,
     expected_drive_uri: Option<&str>,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     if let Some(expected_drive_space_id) = expected_drive_space_id {
         if snapshot.drive_space_id != expected_drive_space_id {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive snapshot from {context} returned unexpected driveSpaceId"
             )));
         }
     }
     if let Some(expected_drive_node_id) = expected_drive_node_id {
         if snapshot.drive_node_id != expected_drive_node_id {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive snapshot from {context} returned unexpected driveNodeId"
             )));
         }
     }
     if let Some(expected_drive_uri) = expected_drive_uri {
         if snapshot.drive_uri != expected_drive_uri {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive snapshot from {context} returned unexpected driveUri"
             )));
         }
@@ -1737,14 +1737,14 @@ fn validate_drive_snapshot_matches_expected_version(
     snapshot: &crate::domain::DrivePageContentSnapshot,
     expected_drive_version_id: &str,
     expected_drive_version_no: i64,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     if snapshot.drive_version_id != expected_drive_version_id {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned unexpected driveVersionId"
         )));
     }
     if snapshot.drive_version_no != expected_drive_version_no {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned unexpected driveVersionNo"
         )));
     }
@@ -1756,14 +1756,14 @@ fn validate_drive_snapshot_matches_expected_content_metadata(
     snapshot: &crate::domain::DrivePageContentSnapshot,
     expected_content_type: &str,
     expected_content_schema_version: &str,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     if snapshot.content_type != expected_content_type {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned unexpected contentType"
         )));
     }
     if snapshot.content_schema_version != expected_content_schema_version {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} returned unexpected contentSchemaVersion"
         )));
     }
@@ -1775,14 +1775,14 @@ fn validate_drive_snapshot_advances_expected_version(
     snapshot: &crate::domain::DrivePageContentSnapshot,
     current_drive_version_id: &str,
     current_drive_version_no: i64,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     if snapshot.drive_version_id == current_drive_version_id {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} did not advance driveVersionId"
         )));
     }
     if snapshot.drive_version_no <= current_drive_version_no {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive snapshot from {context} did not advance driveVersionNo"
         )));
     }
@@ -1794,19 +1794,19 @@ fn validate_drive_version_page(
     page: &DriveVersionPage,
     expected_page: i64,
     expected_page_size: i64,
-) -> Result<(), NotesProductError> {
+) -> Result<(), CanvasProductError> {
     if page.page_info.page != expected_page {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive version page from {context} returned unexpected page"
         )));
     }
     if page.page_info.page_size != expected_page_size {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive version page from {context} returned unexpected pageSize"
         )));
     }
     if page.items.len() > expected_page_size as usize {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive version page from {context} returned too many items"
         )));
     }
@@ -1816,28 +1816,28 @@ fn validate_drive_version_page(
         .as_ref()
         .is_some_and(|cursor| is_blank(Some(cursor.as_str())))
     {
-        return Err(NotesProductError::Internal(format!(
+        return Err(CanvasProductError::Internal(format!(
             "Drive version page from {context} returned blank nextCursor"
         )));
     }
     for version in &page.items {
         if is_blank(Some(version.drive_version_id.as_str())) {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive version page from {context} returned blank driveVersionId"
             )));
         }
         if version.drive_version_no < 1 {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive version page from {context} returned invalid driveVersionNo"
             )));
         }
         if is_blank(Some(version.version_kind.as_str())) {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive version page from {context} returned blank versionKind"
             )));
         }
         if is_blank(Some(version.created_at.as_str())) {
-            return Err(NotesProductError::Internal(format!(
+            return Err(CanvasProductError::Internal(format!(
                 "Drive version page from {context} returned blank createdAt"
             )));
         }
@@ -1848,9 +1848,9 @@ fn validate_drive_version_page(
 fn canvas_persistence_failed_after_drive_write(
     drive_outcome: &str,
     canvas_outcome: &str,
-    error: NotesProductError,
-) -> NotesProductError {
-    NotesProductError::Internal(format!(
+    error: CanvasProductError,
+) -> CanvasProductError {
+    CanvasProductError::Internal(format!(
         "{drive_outcome}, but {canvas_outcome}; reconciliation is required: {error}"
     ))
 }
@@ -1862,7 +1862,7 @@ fn ai_job_payload_hash(
     target_id: Option<&str>,
     prompt: Option<&str>,
     context_policy: &serde_json::Value,
-) -> Result<String, NotesProductError> {
+) -> Result<String, CanvasProductError> {
     let payload = serde_json::json!({
         "workspaceId": workspace_id,
         "jobType": job_type,
@@ -1872,13 +1872,13 @@ fn ai_job_payload_hash(
         "contextPolicy": context_policy,
     });
     let serialized = serde_json::to_string(&payload).map_err(|error| {
-        NotesProductError::Internal(format!("serialize AI job payload failed: {error}"))
+        CanvasProductError::Internal(format!("serialize AI job payload failed: {error}"))
     })?;
     Ok(format!("fnv1a64:{:016x}", fnv1a64(serialized.as_bytes())))
 }
 
 fn stable_ai_job_id(
-    context: &NotesActorContext,
+    context: &CanvasActorContext,
     idempotency_key: &str,
     request_payload_hash: &str,
 ) -> String {
@@ -1894,7 +1894,7 @@ fn stable_ai_job_id(
 }
 
 fn stable_ai_job_source_id(
-    context: &NotesActorContext,
+    context: &CanvasActorContext,
     workspace_id: &str,
     source_type: &str,
     source_id: &str,
@@ -1915,7 +1915,7 @@ fn stable_ai_job_source_id(
 }
 
 fn stable_ai_suggestion_id(
-    context: &NotesActorContext,
+    context: &CanvasActorContext,
     ai_job_id: &str,
     page_id: &str,
     suggestion_type: &str,
@@ -1937,7 +1937,7 @@ fn stable_ai_suggestion_id(
 }
 
 fn stable_ai_feedback_id(
-    context: &NotesActorContext,
+    context: &CanvasActorContext,
     ai_suggestion_id: &str,
     feedback_type: &str,
     feedback_text: Option<&str>,
@@ -1978,7 +1978,7 @@ fn has_page_sources(sources: &[AiJobSource]) -> bool {
 }
 
 fn stable_permission_snapshot_hash(
-    context: &NotesActorContext,
+    context: &CanvasActorContext,
     workspace_id: &str,
     source_type: &str,
     source_id: &str,
@@ -1999,18 +1999,18 @@ fn fnv1a64(bytes: &[u8]) -> u64 {
     hash
 }
 
-fn normalize_page(page: i64) -> Result<i64, NotesProductError> {
+fn normalize_page(page: i64) -> Result<i64, CanvasProductError> {
     if page < 1 {
-        return Err(NotesProductError::Validation(
+        return Err(CanvasProductError::Validation(
             "page must be greater than or equal to 1".to_string(),
         ));
     }
     Ok(page)
 }
 
-fn normalize_page_size(page_size: i64) -> Result<i64, NotesProductError> {
+fn normalize_page_size(page_size: i64) -> Result<i64, CanvasProductError> {
     if !(1..=200).contains(&page_size) {
-        return Err(NotesProductError::Validation(
+        return Err(CanvasProductError::Validation(
             "page_size must be between 1 and 200".to_string(),
         ));
     }

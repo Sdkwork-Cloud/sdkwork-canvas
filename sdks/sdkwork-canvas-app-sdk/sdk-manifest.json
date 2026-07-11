@@ -37,7 +37,7 @@
   "sdkDependencies": [
     {
       "workspace": "sdkwork-iam-app-sdk",
-      "role": "appbase-app-capability",
+      "role": "appbase-identity-and-session-capability",
       "required": true,
       "dependencyMode": "consumer-sdk",
       "apiPrefix": "/app/v3/api",
@@ -163,5 +163,10 @@
       "version": "0.1.0",
       "description": "Generator-owned Go transport SDK for sdkwork-canvas app API."
     }
-  ]
+  ],
+  "metadata": {
+    "standardVersion": "2026-07-06",
+    "materializationState": "authority-active",
+    "managedBy": "sdkwork-canvas-standard-alignment"
+  }
 }

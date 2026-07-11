@@ -1,6 +1,7 @@
 [package]
 name = "sdkwork-canvas-gateway-assembly"
 edition.workspace = true
+license.workspace = true
 version.workspace = true
 description = "Generated gateway assembly for sdkwork-canvas application HTTP plane."
 

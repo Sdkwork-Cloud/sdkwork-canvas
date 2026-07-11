@@ -4,7 +4,7 @@
   "applicationCode": "canvas",
   "packageName": "sdkwork-canvas-gateway-assembly",
   "crateDir": "crates/sdkwork-canvas-gateway-assembly",
-  "generatedAt": "2026-06-25T13:14:32.669Z",
+  "generatedAt": "2026-07-08T01:33:36.534Z",
   "routeCrates": [
     {
       "packageName": "sdkwork-routes-canvas-app-api",

@@ -1,0 +1,229 @@
+{
+  "schemaVersion": 1,
+  "kind": "sdkwork.component.spec",
+  "component": {
+    "name": "@sdkwork/sdkwork-canvas-pc-core",
+    "displayName": "SDKWork Canvas PC Core",
+    "version": "0.1.0",
+    "type": "react-package",
+    "root": "sdkwork-canvas/apps/sdkwork-canvas-pc/packages/sdkwork-canvas-pc-core",
+    "domain": "canvas",
+    "capability": "core",
+    "surface": "app",
+    "languages": [
+      "typescript",
+      "react"
+    ],
+    "generated": false,
+    "private": true,
+    "manifests": [
+      "package.json"
+    ]
+  },
+  "canonicalSpecs": [
+    {
+      "file": "COMPONENT_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/COMPONENT_SPEC.md",
+      "purpose": "Component-local machine contract and discovery rules."
+    },
+    {
+      "file": "APP_COMPOSITION_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/APP_COMPOSITION_SPEC.md",
+      "purpose": "Core package SDK inventory and composition boundaries."
+    },
+    {
+      "file": "APP_SDK_INTEGRATION_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/APP_SDK_INTEGRATION_SPEC.md",
+      "purpose": "Generated SDK integration and dependency SDK consumption."
+    },
+    {
+      "file": "APP_PERMISSION_COMPOSITION_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/APP_PERMISSION_COMPOSITION_SPEC.md",
+      "purpose": "Permission catalog inheritance for HTTP SDK dependencies."
+    },
+    {
+      "file": "FRONTEND_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/FRONTEND_SPEC.md",
+      "purpose": "Frontend service, state, SDK, and UI boundaries."
+    },
+    {
+      "file": "FRONTEND_CODE_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/FRONTEND_CODE_SPEC.md",
+      "purpose": "Frontend authored source structure."
+    },
+    {
+      "file": "TYPESCRIPT_CODE_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/TYPESCRIPT_CODE_SPEC.md",
+      "purpose": "TypeScript package structure and exports."
+    },
+    {
+      "file": "APP_PC_ARCHITECTURE_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/APP_PC_ARCHITECTURE_SPEC.md",
+      "purpose": "PC browser application package taxonomy."
+    },
+    {
+      "file": "APP_PC_REACT_UI_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/APP_PC_REACT_UI_SPEC.md",
+      "purpose": "PC React UI package rules."
+    },
+    {
+      "file": "CODE_STYLE_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/CODE_STYLE_SPEC.md",
+      "purpose": "Authored source structure and generated code boundaries."
+    },
+    {
+      "file": "NAMING_SPEC.md",
+      "path": "../../../../../../sdkwork-specs/NAMING_SPEC.md",
+      "purpose": "Canonical SDKWork naming rules."
+    }
+  ],
+  "contracts": {
+    "layerRole": "frontend-core",
+    "publicExports": [
+      ".",
+      "./sdk",
+      "./modules",
+      "./host",
+      "./session",
+      "./composition",
+      "./src/api",
+      "./src/store",
+      "./src/theme",
+      "./src/types"
+    ],
+    "providedPorts": [
+      {
+        "name": "canvasPcCoreComposition",
+        "export": "./composition"
+      },
+      {
+        "name": "canvasPcCoreSdkRegistry",
+        "export": "./sdk"
+      },
+      {
+        "name": "canvasPcCoreSession",
+        "export": "./session"
+      }
+    ],
+    "requiredPorts": [
+      {
+        "name": "canvasAppSdk",
+        "export": "./sdk"
+      },
+      {
+        "name": "appbaseIamAppSdk",
+        "export": "./sdk"
+      },
+      {
+        "name": "driveAppSdk",
+        "export": "./sdk"
+      }
+    ],
+    "runtimeEntrypoints": [
+      "package.json#exports./composition",
+      "src/composition/index.ts"
+    ],
+    "routeManifest": null,
+    "sdkClients": [],
+    "sdkDependencies": [
+      {
+        "workspace": "sdkwork-canvas-app-sdk",
+        "permissionModuleId": "canvas",
+        "surface": "app-api",
+        "credentialMode": "authenticated-app-api",
+        "role": "application-owned-app-capability",
+        "required": true,
+        "dependencyMode": "consumer-sdk",
+        "apiPrefix": "/app/v3/api",
+        "apiAuthority": "sdkwork-canvas-app-api",
+        "packageByLanguage": {
+          "typescript": "@sdkwork/canvas-app-sdk"
+        }
+      },
+      {
+        "workspace": "sdkwork-iam-app-sdk",
+        "permissionModuleId": "iam-kernel",
+        "surface": "app-api",
+        "credentialMode": "authenticated-app-api",
+        "role": "appbase-identity-and-session-capability",
+        "required": true,
+        "dependencyMode": "consumer-sdk",
+        "apiPrefix": "/app/v3/api",
+        "apiAuthority": "sdkwork-iam-app-api",
+        "packageByLanguage": {
+          "typescript": "@sdkwork/iam-app-sdk"
+        }
+      },
+      {
+        "workspace": "sdkwork-drive-app-sdk",
+        "permissionModuleId": "drive",
+        "surface": "app-api",
+        "credentialMode": "authenticated-app-api",
+        "role": "drive-app-file-capability",
+        "required": true,
+        "dependencyMode": "consumer-sdk",
+        "apiPrefix": "/app/v3/api",
+        "apiAuthority": "sdkwork-drive.app",
+        "packageByLanguage": {
+          "typescript": "@sdkwork/drive-app-sdk"
+        }
+      }
+    ],
+    "permissionComposition": {
+      "inheritanceMode": "module-catalog-with-overrides",
+      "applicationModule": {
+        "manifestRef": "../../../../../specs/iam.module.manifest.json"
+      },
+      "moduleCatalogRefs": [
+        {
+          "moduleId": "canvas",
+          "manifestRef": "../../../../../specs/iam.module.manifest.json",
+          "inheritPermissions": true,
+          "inheritRoles": true
+        },
+        {
+          "moduleId": "drive",
+          "manifestRef": "../../../../../../sdkwork-iam/iam/modules/drive/iam.module.manifest.json",
+          "inheritPermissions": true,
+          "inheritRoles": true
+        },
+        {
+          "moduleId": "iam-kernel",
+          "manifestRef": "../../../../../../sdkwork-iam/iam/modules/iam-kernel/iam.module.manifest.json",
+          "inheritPermissions": true,
+          "inheritRoles": false
+        }
+      ],
+      "bootstrapAccessTokenScope": {
+        "inheritFrom": "sdkwork.app.config.json#backend.accessTokenPermissionScope",
+        "supplement": [],
+        "overrideReplace": false
+      },
+      "routePermissionHints": {
+        "inheritFromOpenApi": true,
+        "inheritFromModuleManifests": true,
+        "overrides": []
+      },
+      "consumerPolicy": {
+        "forbidLocalPermissionCatalogForDependencyDomains": true,
+        "allowExplicitOverridesOnly": true,
+        "allowFrontendHintsWithoutServerDuplication": true
+      }
+    },
+    "dependencyApiExports": [],
+    "dependencyApiSurfaces": [],
+    "events": [],
+    "configKeys": [
+      "package.json#exports",
+      "sdkwork.app.config.json#composition",
+      "config/browser/runtime-env.development.example.json"
+    ]
+  },
+  "verification": {
+    "commands": [
+      "node ../sdkwork-specs/tools/check-composition-resolver.mjs --root .",
+      "node ../sdkwork-specs/tools/check-permission-composition.mjs --root .",
+      "node ../sdkwork-specs/tools/check-component-port-bindings.mjs --root ."
+    ]
+  }
+}

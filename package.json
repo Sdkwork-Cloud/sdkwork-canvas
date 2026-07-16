@@ -7,7 +7,7 @@
   },
   "packageManager": "pnpm@10.33.0",
   "scripts": {
-    "dev": "pnpm dev:browser",
+    "stop": "node ../sdkwork-specs/tools/stop-sdkwork-workspace-processes.mjs --workspace .",    "dev": "pnpm dev:browser",
     "dev:browser": "pnpm dev:browser:postgres:unified-process:standalone",
     "dev:browser:postgres": "pnpm dev:browser:postgres:unified-process:standalone",
     "dev:browser:postgres:unified-process:standalone": "node scripts/canvas-dev.mjs --target browser --deployment-profile standalone --service-layout unified-process --database postgres",

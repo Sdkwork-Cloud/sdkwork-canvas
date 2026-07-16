@@ -446,7 +446,7 @@
     {
       "method": "GET",
       "path": "/app/v3/api/canvas/search",
-      "operationId": "search.query",
+      "operationId": "search.list",
       "tags": [
         "canvas"
       ],

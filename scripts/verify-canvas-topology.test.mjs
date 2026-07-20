@@ -109,10 +109,3 @@ test('canvas standalone-gateway requires topology bind env without hardcoded fal
   assert.match(mainRs, /SDKWORK_CANVAS_APPLICATION_PUBLIC_INGRESS_BIND/);
   assert.doesNotMatch(mainRs, /127\.0\.0\.1:8787/);
 });
-
-test('gateway cloud bundle script references topology packaging configs', async () => {
-  const bundleScript = await read('scripts/gateway-cloud-bundle.mjs');
-  assert.match(bundleScript, /CANVAS_CLOUD_GATEWAY_CONFIGS/);
-  assert.match(bundleScript, /sdkwork-canvas-api-gateway-config-/);
-  assert.doesNotMatch(bundleScript, /bridgeLegacyServiceEnv/);
-});

@@ -1,0 +1,32 @@
+{
+  "kind": "sdkwork.api.assembly",
+  "schemaVersion": 1,
+  "applicationCode": "canvas",
+  "apiMode": "served",
+  "packageName": "sdkwork-api-canvas-assembly",
+  "crateDir": "crates/sdkwork-api-canvas-assembly",
+  "routeCrates": [
+    {
+      "packageName": "sdkwork-routes-canvas-app-api",
+      "memberDir": "crates/sdkwork-routes-canvas-app-api",
+      "libName": "sdkwork_routes_canvas_app_api",
+      "surface": "app-api",
+      "pathPrefix": null,
+      "mountOrder": 0,
+      "componentRef": "crates/sdkwork-routes-canvas-app-api/specs/component.spec.json",
+      "routeManifestRef": "crates/sdkwork-routes-canvas-app-api/../../../sdks/_route-manifests/app-api/sdkwork-routes-canvas-app-api.route-manifest.json",
+      "sourceRef": "crates/sdkwork-routes-canvas-app-api/Cargo.toml"
+    },
+    {
+      "packageName": "sdkwork-routes-canvas-backend-api",
+      "memberDir": "crates/sdkwork-routes-canvas-backend-api",
+      "libName": "sdkwork_routes_canvas_backend_api",
+      "surface": "backend-api",
+      "pathPrefix": null,
+      "mountOrder": 1,
+      "componentRef": "crates/sdkwork-routes-canvas-backend-api/specs/component.spec.json",
+      "routeManifestRef": "crates/sdkwork-routes-canvas-backend-api/../../../sdks/_route-manifests/backend-api/sdkwork-routes-canvas-backend-api.route-manifest.json",
+      "sourceRef": "crates/sdkwork-routes-canvas-backend-api/Cargo.toml"
+    }
+  ]
+}

@@ -62,7 +62,7 @@ test('Rust workspace members include canvas pages and gateway crates', () => {
   for (const member of [
     'crates/sdkwork-canvas-pages-service',
     'crates/sdkwork-routes-canvas-app-api',
-    'crates/sdkwork-canvas-standalone-gateway',
+    'crates/sdkwork-api-canvas-standalone-gateway',
   ]) {
     assert.match(cargo, new RegExp(member.replaceAll('/', '\\/')));
   }
@@ -101,6 +101,6 @@ test('database module id is canvas', () => {
 });
 
 test('integrates sdkwork-drive in standalone gateway bootstrap', () => {
-  const facade = read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/drive_app_sdk_facade.rs');
+  const facade = read('crates/sdkwork-api-canvas-standalone-gateway/src/bootstrap/drive_app_sdk_facade.rs');
   assert.match(facade, /sdkwork_drive_app_sdk_generated_rust/);
 });

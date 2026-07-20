@@ -15,7 +15,7 @@ SDKWork Canvas is a greenfield application for AI-native visual workspaces. It m
 - Application code: `canvas`
 - Repository kind: `application`
 - Primary client: `apps/sdkwork-canvas-pc` (PC React)
-- Backend: Rust route crates + `sdkwork-canvas-standalone-gateway`
+- Backend: Rust route crates + `sdkwork-api-canvas-standalone-gateway`
 - APIs under `apis/app-api/canvas/` and `apis/backend-api/canvas/`
 - No repository-root `packages/`
 

@@ -7,7 +7,7 @@ Authority: `../sdkwork-specs/RUST_CODE_SPEC.md`.
 ## Active Services
 
 - `sdkwork-canvas-api-server/`: HTTP API server process (`sdkwork-<application-code>-api-server`).
-- `sdkwork-canvas-standalone-gateway/`: standalone application gateway (`sdkwork-<application-code>-standalone-gateway`).
+- `sdkwork-api-canvas-standalone-gateway/`: standalone application gateway (`sdkwork-<application-code>-standalone-gateway`).
 
 ## Rules
 

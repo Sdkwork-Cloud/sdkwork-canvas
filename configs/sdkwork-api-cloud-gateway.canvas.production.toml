@@ -48,11 +48,11 @@ coverage = "canvas-backend-api-upstream-routes"
 
 [[upstreams]]
 serviceId = "sdkwork-canvas-app-api"
-baseUrl = "http://sdkwork-canvas-standalone-gateway:8787"
+baseUrl = "http://sdkwork-api-canvas-standalone-gateway:8787"
 
 [[upstreams]]
 serviceId = "sdkwork-canvas-backend-api"
-baseUrl = "http://sdkwork-canvas-standalone-gateway:8787"
+baseUrl = "http://sdkwork-api-canvas-standalone-gateway:8787"
 
 [cors]
 allowAnyOrigin = false

@@ -8,7 +8,7 @@ Specs: ARCHITECTURE_DECISION_SPEC.md, WEB_FRAMEWORK_SPEC.md, DATABASE_FRAMEWORK_
 
 ## Architecture Overview
 
-SDKWork Canvas is a Rust + TypeScript application repository. HTTP ingress runs through `sdkwork-canvas-standalone-gateway` with mandatory `sdkwork-web-framework` integration. Domain logic lives in `sdkwork-canvas-pages-service`; persistence uses `sdkwork-database` lifecycle assets under `database/` (`moduleId: canvas`).
+SDKWork Canvas is a Rust + TypeScript application repository. HTTP ingress runs through `sdkwork-api-canvas-standalone-gateway` with mandatory `sdkwork-web-framework` integration. Domain logic lives in `sdkwork-canvas-pages-service`; persistence uses `sdkwork-database` lifecycle assets under `database/` (`moduleId: canvas`).
 
 ## Technology Choices
 

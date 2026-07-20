@@ -75,14 +75,14 @@ test('run-canvas-standalone-gateway loads topology profile env instead of hardco
 });
 
 test('canvas standalone-gateway reads application.public-ingress bind env key', async () => {
-  const mainRs = await read('crates/sdkwork-canvas-standalone-gateway/src/main.rs');
+  const mainRs = await read('crates/sdkwork-api-canvas-standalone-gateway/src/main.rs');
   assert.match(mainRs, /SDKWORK_CANVAS_APPLICATION_PUBLIC_INGRESS_BIND/);
   assert.doesNotMatch(mainRs, /SDKWORK_CANVAS_BIND_ADDRESS/);
 });
 
 test('canvas standalone-gateway exposes /healthz for topology health waits', async () => {
-  const routers = await read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/routers.rs');
-  const bootstrapMod = await read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/mod.rs');
+  const routers = await read('crates/sdkwork-api-canvas-standalone-gateway/src/bootstrap/routers.rs');
+  const bootstrapMod = await read('crates/sdkwork-api-canvas-standalone-gateway/src/bootstrap/mod.rs');
   const usesServiceRouter =
     /service_router\s*\(/u.test(routers) || /service_router\s*\(/u.test(bootstrapMod);
   assert.ok(usesServiceRouter, 'standalone gateway must mount infra via service_router');
@@ -105,7 +105,7 @@ test('canvas dev orchestrator uses orchestration spec and gateway config', async
 });
 
 test('canvas standalone-gateway requires topology bind env without hardcoded fallback', async () => {
-  const mainRs = await read('crates/sdkwork-canvas-standalone-gateway/src/main.rs');
+  const mainRs = await read('crates/sdkwork-api-canvas-standalone-gateway/src/main.rs');
   assert.match(mainRs, /SDKWORK_CANVAS_APPLICATION_PUBLIC_INGRESS_BIND/);
   assert.doesNotMatch(mainRs, /127\.0\.0\.1:8787/);
 });

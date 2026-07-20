@@ -12,10 +12,10 @@ function read(relativePath, root = repoRoot) {
 }
 
 const bootstrapSource = read(
-  'crates/sdkwork-canvas-standalone-gateway/src/bootstrap/iam_application_bootstrap.rs',
+  'crates/sdkwork-api-canvas-standalone-gateway/src/bootstrap/iam_application_bootstrap.rs',
 );
-const routersSource = read('crates/sdkwork-canvas-standalone-gateway/src/bootstrap/routers.rs');
-const apiServerCargo = read('crates/sdkwork-canvas-standalone-gateway/Cargo.toml');
+const routersSource = read('crates/sdkwork-api-canvas-standalone-gateway/src/bootstrap/routers.rs');
+const apiServerCargo = read('crates/sdkwork-api-canvas-standalone-gateway/Cargo.toml');
 const workspaceCargo = read('Cargo.toml');
 const topologySource = read('scripts/lib/canvas-topology.mjs');
 const sharedBootstrapSource = read(

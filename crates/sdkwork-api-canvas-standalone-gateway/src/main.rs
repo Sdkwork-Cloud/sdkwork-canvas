@@ -1,4 +1,4 @@
-use sdkwork_canvas_standalone_gateway::build_router;
+use sdkwork_api_canvas_standalone_gateway::build_router;
 
 #[tokio::main]
 async fn main() {
@@ -17,7 +17,7 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind(&bind_address)
         .await
         .expect("bind canvas standalone-gateway listener failed");
-    tracing::info!("sdkwork-canvas-standalone-gateway listening on {bind_address}");
+    tracing::info!("sdkwork-api-canvas-standalone-gateway listening on {bind_address}");
     axum::serve(listener, app)
         .await
         .expect("serve canvas standalone-gateway failed");

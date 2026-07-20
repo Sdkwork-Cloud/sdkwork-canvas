@@ -1,13 +1,14 @@
 [workspace]
 members = [
-    "crates/sdkwork-canvas-gateway-assembly",
+    "crates/sdkwork-api-canvas-assembly",
+    "crates/sdkwork-api-canvas-assembly",
     "crates/sdkwork-canvas-database-host",
     "crates/sdkwork-canvas-pages-service",
     "crates/sdkwork-canvas-pages-repository-sqlx",
     "crates/sdkwork-routes-canvas-http-auth",
     "crates/sdkwork-routes-canvas-app-api",
     "crates/sdkwork-routes-canvas-backend-api",
-    "crates/sdkwork-canvas-standalone-gateway",
+    "crates/sdkwork-api-canvas-standalone-gateway",
 ]
 resolver = "2"
 
@@ -32,7 +33,7 @@ reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"
 sha2 = "0.10"
 
 sdkwork-canvas-database-host = { path = "crates/sdkwork-canvas-database-host" }
-sdkwork-canvas-gateway-assembly = { path = "crates/sdkwork-canvas-gateway-assembly" }
+sdkwork-api-canvas-assembly = { path = "crates/sdkwork-api-canvas-assembly" }
 sdkwork-canvas-pages-service = { path = "crates/sdkwork-canvas-pages-service" }
 sdkwork-canvas-pages-repository-sqlx = { path = "crates/sdkwork-canvas-pages-repository-sqlx" }
 sdkwork-routes-canvas-http-auth = { path = "crates/sdkwork-routes-canvas-http-auth" }

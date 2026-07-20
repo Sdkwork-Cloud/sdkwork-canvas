@@ -141,9 +141,9 @@ function ensureNotesDataDir() {
 function createNotesApiServerProcess(env) {
   ensureNotesDataDir();
   return {
-    label: 'sdkwork-canvas-standalone-gateway',
+    label: 'sdkwork-api-canvas-standalone-gateway',
     command: cargoCommand(),
-    args: ['run', '-p', 'sdkwork-canvas-standalone-gateway'],
+    args: ['run', '-p', 'sdkwork-api-canvas-standalone-gateway'],
     cwd: REPO_ROOT,
     env,
   };

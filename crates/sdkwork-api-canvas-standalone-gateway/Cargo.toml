@@ -1,14 +1,14 @@
 [package]
-name = "sdkwork-canvas-standalone-gateway"
+name = "sdkwork-api-canvas-standalone-gateway"
 version.workspace = true
 edition.workspace = true
 
 [[bin]]
-name = "sdkwork-canvas-standalone-gateway"
+name = "sdkwork-api-canvas-standalone-gateway"
 path = "src/main.rs"
 
 [dependencies]
-sdkwork_canvas_gateway_assembly = { package = "sdkwork-canvas-gateway-assembly", path = "../sdkwork-canvas-gateway-assembly" }
+sdkwork_api_canvas_assembly = { package = "sdkwork-api-canvas-assembly", path = "../sdkwork-api-canvas-assembly" }
 axum.workspace = true
 tokio.workspace = true
 serde_json.workspace = true

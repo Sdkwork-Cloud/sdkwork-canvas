@@ -8,10 +8,10 @@ application:
 profiles:
   standalone:
     services:
-      - name: sdkwork-canvas-standalone-gateway
+      - name: sdkwork-api-canvas-standalone-gateway
         kind: http
         port: 3900
-        binary: sdkwork-canvas-standalone-gateway
+        binary: sdkwork-api-canvas-standalone-gateway
         routes:
           - prefix: /app/v3/api/canvas
             surface: app-api
@@ -20,10 +20,10 @@ profiles:
 
   cloud:
     services:
-      - name: sdkwork-canvas-standalone-gateway
+      - name: sdkwork-api-canvas-standalone-gateway
         kind: http
         port: 3900
-        binary: sdkwork-canvas-standalone-gateway
+        binary: sdkwork-api-canvas-standalone-gateway
         routes:
           - prefix: /app/v3/api/canvas
             surface: app-api

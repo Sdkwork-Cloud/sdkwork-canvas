@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 4,
+  "schemaVersion": 5,
   "kind": "sdkwork.app.topology",
   "appId": "sdkwork-canvas",
   "archetype": "application-http-gateway",
@@ -34,10 +34,7 @@
   "envKeys": {
     "environment": "SDKWORK_CANVAS_ENVIRONMENT",
     "profileId": "SDKWORK_CANVAS_PROFILE_ID",
-    "gatewayAutostart": "SDKWORK_CANVAS_PLATFORM_API_GATEWAY_AUTOSTART",
     "standaloneGatewayBind": "SDKWORK_CANVAS_APPLICATION_PUBLIC_INGRESS_BIND",
-    "cloudGatewayBind": "SDKWORK_API_CLOUD_GATEWAY_BIND",
-    "cloudGatewayConfig": "SDKWORK_API_CLOUD_GATEWAY_CONFIG",
     "clientApiGatewayBaseUrl": "VITE_SDKWORK_CANVAS_PLATFORM_API_GATEWAY_HTTP_URL",
     "apiGatewayBaseUrl": "SDKWORK_CANVAS_PLATFORM_API_GATEWAY_HTTP_URL",
     "deploymentProfile": "SDKWORK_CANVAS_DEPLOYMENT_PROFILE",
@@ -58,11 +55,8 @@
       "protocols": [
         "http"
       ],
-      "owner": "sdkwork-api-cloud-gateway",
-      "bindEnv": "SDKWORK_API_CLOUD_GATEWAY_BIND",
       "httpUrlEnv": "SDKWORK_CANVAS_PLATFORM_API_GATEWAY_HTTP_URL",
-      "clientHttpEnv": "VITE_SDKWORK_CANVAS_PLATFORM_API_GATEWAY_HTTP_URL",
-      "autostartEnv": "SDKWORK_CANVAS_PLATFORM_API_GATEWAY_AUTOSTART"
+      "clientHttpEnv": "VITE_SDKWORK_CANVAS_PLATFORM_API_GATEWAY_HTTP_URL"
     }
   },
   "cloudPublicHosts": {
@@ -80,12 +74,6 @@
     "applicationServer": {
       "crate": "sdkwork-canvas-standalone-gateway",
       "binary": "sdkwork-canvas-standalone-gateway"
-    },
-    "cloudGateway": {
-      "crate": "sdkwork-api-cloud-gateway",
-      "binary": "sdkwork-api-cloud-gateway",
-      "repository": "sdkwork-api-cloud-gateway",
-      "configGlob": "configs/sdkwork-api-cloud-gateway.canvas.{profile}.toml"
     }
   },
   "orchestration": {
@@ -96,13 +84,15 @@
             "id": "application.public-ingress",
             "crate": "sdkwork-canvas-standalone-gateway",
             "binary": "sdkwork-canvas-standalone-gateway",
-            "required": true
+            "required": true,
+            "role": "api-standalone-gateway"
           },
           {
             "id": "pc-renderer",
             "package": "sdkwork-canvas-pc-react",
             "script": "dev",
-            "required": true
+            "required": true,
+            "role": "client"
           }
         ],
         "healthSurfaces": [
@@ -110,52 +100,27 @@
         ]
       },
       "cloud.development": {
-        "processes": [
-          {
-            "id": "platform.api-gateway",
-            "crate": "sdkwork-api-cloud-gateway",
-            "binary": "sdkwork-api-cloud-gateway",
-            "repository": "sdkwork-api-cloud-gateway",
-            "required": true
-          },
-          {
-            "id": "application.public-ingress",
-            "crate": "sdkwork-canvas-standalone-gateway",
-            "binary": "sdkwork-canvas-standalone-gateway",
-            "required": true
-          },
-          {
-            "id": "pc-renderer",
-            "package": "sdkwork-canvas-pc-react",
-            "script": "dev",
-            "required": true
-          }
-        ],
+        "processes": [],
         "healthSurfaces": [
-          "platform.api-gateway",
-          "application.public-ingress"
+          "application.public-ingress",
+          "platform.api-gateway"
         ]
       },
       "cloud.production": {
         "processes": [
           {
-            "id": "platform.api-gateway",
-            "crate": "sdkwork-api-cloud-gateway",
-            "binary": "sdkwork-api-cloud-gateway",
-            "repository": "sdkwork-api-cloud-gateway",
-            "required": false
-          },
-          {
             "id": "application.public-ingress",
             "crate": "sdkwork-canvas-standalone-gateway",
             "binary": "sdkwork-canvas-standalone-gateway",
-            "required": true
+            "required": true,
+            "role": "api-standalone-gateway"
           },
           {
             "id": "pc-renderer",
             "package": "sdkwork-canvas-pc-react",
             "script": "dev",
-            "required": true
+            "required": true,
+            "role": "client"
           }
         ],
         "healthSurfaces": [
@@ -169,13 +134,15 @@
             "id": "application.public-ingress",
             "crate": "sdkwork-canvas-standalone-gateway",
             "binary": "sdkwork-canvas-standalone-gateway",
-            "required": true
+            "required": true,
+            "role": "api-standalone-gateway"
           },
           {
             "id": "pc-renderer",
             "package": "sdkwork-canvas-pc-react",
             "script": "dev",
-            "required": true
+            "required": true,
+            "role": "client"
           }
         ],
         "healthSurfaces": [
@@ -185,10 +152,7 @@
     }
   },
   "packaging": {
-    "cloudConfigFiles": [
-      "sdkwork-api-cloud-gateway.canvas.development.toml",
-      "sdkwork-api-cloud-gateway.canvas.production.toml"
-    ],
+    "cloudConfigFiles": [],
     "targets": [
       {
         "id": "platform-config-bundle-tar-gz",

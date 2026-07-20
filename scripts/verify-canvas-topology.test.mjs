@@ -42,9 +42,9 @@ test('declares v2 topology spec and profile env files for sdkwork-canvas', async
 
   for (const profileId of [
     'standalone.split-services.development',
-    'standalone.unified-process.production',
-    'cloud.split-services.development',
-    'cloud.split-services.production',
+    'standalone.production',
+    'cloud.development',
+    'cloud.production',
   ]) {
     const profilePath = spec.profileFiles[profileId];
     assert.equal(await exists(profilePath), true, `${profilePath} should exist`);
@@ -58,7 +58,7 @@ test('declares v2 topology spec and profile env files for sdkwork-canvas', async
 test('root package.json wires @sdkwork/app-topology and standard dev scripts', async () => {
   const packageJson = await readJson('package.json');
   assert.match(packageJson.dependencies['@sdkwork/app-topology'], /workspace:\*|file:\.\.\/sdkwork-app-topology/);
-  assert.match(packageJson.scripts['dev:browser:postgres:unified-process:standalone'], /scripts\/canvas-dev\.mjs/);
+  assert.match(packageJson.scripts['dev:browser:postgres:standalone'], /scripts\/canvas-dev\.mjs/);
   assert.match(packageJson.scripts['topology:validate'], /sdkwork-topology\.mjs validate/);
 });
 

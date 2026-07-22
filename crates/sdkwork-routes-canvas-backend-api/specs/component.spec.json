@@ -6,7 +6,7 @@
     "displayName": "SDKWork Canvas Backend API Router",
     "version": "0.1.0",
     "type": "rust-route-crate",
-    "root": "sdkwork-canvas/crates/sdkwork-routes-canvas-backend-api",
+    "root": "crates/sdkwork-routes-canvas-backend-api",
     "domain": "canvas",
     "capability": "canvas",
     "surface": "backend-api",
@@ -75,7 +75,7 @@
     "runtimeEntrypoints": [
       "sdkwork_routes_canvas_backend_api::routes::build_router"
     ],
-    "routeManifest": "../../../sdks/_route-manifests/backend-api/sdkwork-routes-canvas-backend-api.route-manifest.json",
+    "routeManifest": "sdks/_route-manifests/backend-api/sdkwork-routes-canvas-backend-api.route-manifest.json",
     "sdkClients": [],
     "sdkDependencies": [],
     "dependencyApiExports": [],

@@ -13,6 +13,6 @@ path = "src/lib.rs"
 axum.workspace = true
 tokio.workspace = true
 sdkwork-canvas-pages-service.workspace = true
-sdkwork_routes_canvas_http_auth = { package = "sdkwork-routes-canvas-http-auth", path = "../sdkwork-routes-canvas-http-auth" }
+sdkwork-routes-canvas-http-auth.workspace = true
 sdkwork-routes-canvas-app-api.workspace = true
 sdkwork-routes-canvas-backend-api.workspace = true
